@@ -10,12 +10,7 @@ jobs:
       - uses: actions/setup-python@v2
       - uses: actions/setup-node@v2
         with:
-          script: |
-            git pull
-            export NVM_DIR=~/.nvm
-            source ~/.nvm/nvm.sh
-            npm install
-            npm run start_server
+          node-version: '12'
       - uses: iterative/setup-cml@v1
       - name: Train model
         env:
