@@ -9,16 +9,14 @@ jobs:
       - uses: actions/checkout@v2
       - run: |
           sudo apt-get install npm -y
-      - uses: actions/setup-python@v2
-      - run: |
+          sudo apt-get install python3
           sudo apt install python3-pip
       - uses: iterative/setup-cml@v1
       - name: Train model
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          which pip
-          pip install -r requirements.txt
+          pip3 install -r requirements.txt
           python train.py > output.md
 
           cml-send-comment output.md
