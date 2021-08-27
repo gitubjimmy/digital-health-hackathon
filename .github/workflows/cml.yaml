@@ -7,14 +7,12 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - uses: iterative/setup-cml@v1
       - name: Train model
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          apt-get update
-          apt install python3.8-venv
-          python -m venv venv
-          source ./venv/bin/activate
           pip install -r requirements.txt
           python train.py > output.md
 
