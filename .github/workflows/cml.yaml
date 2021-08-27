@@ -4,14 +4,12 @@ on:
   - workflow_dispatch
 jobs:
   run:
+    env:
+      AGENT_TOOLSDIRECTORY: '~'
     runs-on: self-hosted
     steps:
-
       - uses: actions/checkout@v2
-      - name: Python settings
-        env:
-          AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
-        uses: actions/setup-python@v2
+      - uses: actions/setup-python@v2
       - run: |
           sudo apt-get install npm -y
       - uses: iterative/setup-cml@v1
