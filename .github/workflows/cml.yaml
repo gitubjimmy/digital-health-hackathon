@@ -4,8 +4,6 @@ on:
   - workflow_dispatch
 jobs:
   run:
-    env:
-      AGENT_TOOLSDIRECTORY: /home/azureuser
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v2
