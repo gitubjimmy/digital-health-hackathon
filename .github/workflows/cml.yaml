@@ -6,6 +6,7 @@ jobs:
   run:
     env:
       AGENT_TOOLSDIRECTORY: '~'
+      ACTIONS_STEP_DEBUG: true
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v2
