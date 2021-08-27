@@ -4,10 +4,17 @@ on:
   - workflow_dispatch
 jobs:
   run:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+      - run: |
+          curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+          sudo apt install aptitude -y
+          sudo aptitude install npm -y
       - uses: iterative/setup-cml@v1
       - name: Train model
         env:
