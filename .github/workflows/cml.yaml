@@ -9,9 +9,6 @@ jobs:
       - name: Initial settings
         env:
           AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
-        run: |
-          sudo mkdir /opt/hostedtoolcache
-          sudo chown azureuser /opt/hostedtoolcache
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
       - run: |
