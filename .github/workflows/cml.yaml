@@ -6,11 +6,16 @@ jobs:
   run:
     runs-on: self-hosted
     steps:
+      - name: Initial settings
+        env:
+          AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
+        run: |
+          sudo mkdir /opt/hostedtoolcache
+          sudo chown azureuser /opt/hostedtoolcache
       - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
       - run: |
           sudo apt-get install npm -y
-          sudo apt-get install python3
-          sudo apt install python3-pip
       - uses: iterative/setup-cml@v1
       - name: Train model
         env:
