@@ -7,9 +7,8 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
       - run: |
-          sudo apt-get install npm
+          sudo apt-get install npm -y
       - uses: actions/setup-python@v2
       - uses: iterative/setup-cml@v1
       - name: Train model
