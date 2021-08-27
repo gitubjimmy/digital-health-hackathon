@@ -8,15 +8,10 @@ jobs:
     container: docker://iterativeai/cml:0-dvc2-base1-gpu
     steps:
       - uses: actions/checkout@v2
-      - name: Setup pyenv
-        uses: gabrielfalcao/pyenv-action@v5
-        with:
-          default: 3.7.10
       - name: Train model
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          pyenv virtualenv 3.7.10 python
           pyenv activate python
           pip install -r requirements.txt
           python train.py > output.md
