@@ -10,6 +10,8 @@ jobs:
       - run: |
           sudo apt-get install npm -y
       - uses: actions/setup-python@v2
+      - run: |
+          sudo apt install python3-pip
       - uses: iterative/setup-cml@v1
       - name: Train model
         env:
