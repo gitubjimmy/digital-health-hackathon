@@ -9,6 +9,7 @@ jobs:
     steps:
       - uses: docker-practice/actions-setup-docker@master
       - uses: actions/checkout@v2
+      - name: Train model
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
