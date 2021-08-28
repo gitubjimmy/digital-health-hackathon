@@ -29,6 +29,7 @@ jobs:
           python test.py
 
           echo "## Testing model  " >> output.md
+          cml-publish sample.png --md >> report.md
           cat output.txt >> output.md
 
           cml-send-comment output.md

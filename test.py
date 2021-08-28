@@ -1,9 +1,10 @@
 import torch
+import torchvision
 
 from config import PATH
 from data_loader import get_data_loaders
 from model import Net
-from utils import file_output
+from utils import file_output, img_show
 
 classes = (
     'plane', 'car', 'bird',
@@ -16,6 +17,16 @@ if __name__ == '__main__':
 
     net = Net()
     net.load_state_dict(torch.load(PATH))
+
+    # sample png
+    data_iter = iter(test_loader)
+    images, labels = next(data_iter)
+
+    # print images
+    img_show(torchvision.utils.make_grid(images), 'sample.png')
+    file_output(
+        'GroundTruth: ' + ' '.join('%5s' % classes[labels[j]] for j in range(4)) + '\n'
+    )
 
     # prepare to count predictions for each class
     correct_pred = {classname: 0 for classname in classes}
