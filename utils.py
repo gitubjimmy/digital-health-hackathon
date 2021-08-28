@@ -1,4 +1,8 @@
-import os
+import io
+import sys
+
+import contextlib
+import functools
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,6 +22,39 @@ def file_output(line):
     file_output.count += 1
     with open(OUTPUT_FILE_PATH, open_method) as output_file:
         output_file.write(f'{line}\n')
+
+
+@contextlib.contextmanager
+def kill_stderr():  # context manager
+    """
+    Kills stderr in context.
+
+    Example usage:
+
+    >>> from torchvision.datasets import CIFAR10
+    >>> with kill_stderr():
+    ...     CIFAR10(root='data', download=True)
+    ...
+    Downloading https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz to data/cifar-10-python.tar.gz
+
+    """
+    try:
+        # make dummy stderr
+        killed_stderr = io.StringIO()
+        # swap to dummy stderr
+        sys.stderr = killed_stderr
+        yield killed_stderr
+    finally:  # safe-wrap with exception handler
+        sys.stderr = sys.__stderr__  # NOTE: __stderr__ - original stderr
+
+
+def without_stderr(func):  # decorator
+    """Decorator that makes function run without stderr output."""
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        with kill_stderr():
+            return func(*args, **kwargs)
+    return wrapper
 
 
 file_output.count = 0
