@@ -20,5 +20,6 @@ jobs:
 
           cml-publish output.png --md >> output.md
           cml-publish output2.png --md >> output.md
+          cml-publish output3.png --md >> output.md
 
           cml-send-comment output.md
