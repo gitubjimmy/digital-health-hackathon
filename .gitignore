@@ -4,3 +4,5 @@ __pycache__
 # jupyter
 **.ipynb
 .ipynb_checkpoints
+
+output.txt

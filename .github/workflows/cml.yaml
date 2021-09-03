@@ -1,26 +1,19 @@
 name: model-training
-on:
-  - push
-  - workflow_dispatch
+on: [pull_request]
 jobs:
   run:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
-        with:
-          python-version: '3.8'
-      - run: |
-          curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
-          sudo apt-get install -y nodejs
-          sudo apt install aptitude -y
-          sudo aptitude install npm -y
       - uses: iterative/setup-cml@v1
       - name: Train model
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          pip install -r requirements.txt
-          python train.py > output.md
+          pip3 install -r requirements.txt
+          python pca.py
+
+          cml-publish output.png --md >> output.md
 
           cml-send-comment output.md
