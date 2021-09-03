@@ -1,5 +1,8 @@
 name: model-training
-on: [pull_request]
+on:
+  push:
+    branches:
+      - '!master'
 jobs:
   run:
     runs-on: ubuntu-latest
