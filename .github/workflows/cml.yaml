@@ -20,7 +20,16 @@ jobs:
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          pip install -r requirements.txt
-          python train.py > output.md
+          pip3 install -r requirements.txt
+          python train.py
+
+          echo "## Training model  " >> output.md
+          cat output.txt >> output.md
+
+          python test.py
+
+          echo "## Testing model  " >> output.md
+          cml-publish sample.png --md >> output.md
+          cat output.txt >> output.md
 
           cml-send-comment output.md
