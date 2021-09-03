@@ -1,4 +1,5 @@
 from data_loader import get_data
+import pandas as pd
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
@@ -24,4 +25,9 @@ if __name__ == '__main__':
     plt.clf()
     plt.hist(group_label, range=(-5, 6), bins=11)
     plt.savefig("output2.png")
+
+    generic_alterations = generic_alterations.iloc[:, 1:]
+    clinical_variables = clinical_variables.iloc[:, 1:]
+    generic_alterations = generic_alterations.join(clinical_variables)
+    generic_alterations["Group"] = group_label
 

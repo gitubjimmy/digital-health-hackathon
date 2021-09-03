@@ -16,7 +16,7 @@ jobs:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pip3 install -r requirements.txt
-          python pca.py
+          python pca.py >> output.md
 
           cml-publish output.png --md >> output.md
           cml-publish output2.png --md >> output.md
