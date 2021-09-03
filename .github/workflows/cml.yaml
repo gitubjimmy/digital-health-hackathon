@@ -2,6 +2,7 @@ name: model-training
 on:
   push:
     branches:
+      - '*'
       - '!master'
 jobs:
   run:
