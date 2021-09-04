@@ -2,16 +2,52 @@ from data_loader import get_data
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 import pandas as pd
-import networkx as nx
-import numpy as np
 
-if __name__ == '__main__':
-    clinical_variables, generic_alterations, survival_time_event, treatment = get_data()
-    n_data = treatment.shape[0]
-    max_survival_time = 120
-    for idx in range(n_data):
+
+def set_max_survival_time(survival_time_event, max_survival_time):
+    for idx in range(len(survival_time_event)):
         if survival_time_event.loc[idx, "event"] == 0:
             survival_time_event.at[idx, "time"] = max_survival_time
+    set_max_survival_time.previous_max_survival_time = max_survival_time
+
+
+def find_effective_genes(survival_time_event, generic_alterations, treatment):
+    # effective genes
+    gene_effectiveness = []
+    for gen_idx in range(300):
+        column_name = f"G{gen_idx + 1}"
+        mutated_indices_treatment = generic_alterations \
+            .loc[(generic_alterations[column_name] == 1) & (treatment["Treatment"] == 1), column_name].index
+        normal_indices_treatment = generic_alterations \
+            .loc[(generic_alterations[column_name] == 0) & (treatment["Treatment"] == 1), column_name].index
+        mutated_indices = generic_alterations \
+            .loc[(generic_alterations[column_name] == 1) & (treatment["Treatment"] == 0), column_name].index
+        normal_indices = generic_alterations \
+            .loc[(generic_alterations[column_name] == 0) & (treatment["Treatment"] == 0), column_name].index
+
+        survived_time_mutated_treatment = survival_time_event.loc[mutated_indices_treatment, "time"].mean()
+        survived_time_normal_treatment = survival_time_event.loc[normal_indices_treatment, "time"].mean()
+        survived_time_mutated = survival_time_event.loc[mutated_indices, "time"].mean()
+        survived_time_normal = survival_time_event.loc[normal_indices, "time"].mean()
+
+        t1 = survived_time_mutated_treatment - survived_time_normal_treatment
+        t2 = survived_time_mutated - survived_time_normal
+
+        gene_effectiveness.append((column_name, t1 - t2))
+    gene_effectiveness.sort(key=lambda _tuple: _tuple[1], reverse=True)
+    return gene_effectiveness
+
+
+def print_effective_genes(gene_effectiveness):
+    print('gene_effectiveness')
+    for effective_gene in gene_effectiveness:
+        print(effective_gene)
+
+
+def main():
+    clinical_variables, generic_alterations, survival_time_event, treatment = get_data()
+    n_data = treatment.shape[0]
+    set_max_survival_time(survival_time_event, 120)
     hist = survival_time_event.hist(column="time", range=(0, 200), bins=10)
     fig = hist[0][0].get_figure()
     fig.savefig("output.png")
@@ -59,40 +95,30 @@ if __name__ == '__main__':
         output_csv.write(to_csv)
     with open('./data/relativity_graph_xor.csv', 'w') as output_csv:
         output_csv.write(to_csv_xor)
-    print('average_mutation_per_person', sum(mutation_per_person)/len(mutation_per_person))
+    print('average_mutation_per_person', sum(mutation_per_person) / len(mutation_per_person))
     flat_relativity_graph_xor = [cell_value for row in relativity_graph_xor for cell_value in row if cell_value > 0]
     print('min value in relativity_graph_xor', min(flat_relativity_graph_xor))
 
     # effective genes
-    gene_effectiveness = []
-    for gen_idx in range(300):
-        column_name = f"G{gen_idx + 1}"
-        mutated_indices_treatment = generic_alterations\
-            .loc[(generic_alterations[column_name] == 1) & (treatment["Treatment"] == 1), column_name].index
-        normal_indices_treatment = generic_alterations\
-            .loc[(generic_alterations[column_name] == 0) & (treatment["Treatment"] == 1), column_name].index
-        mutated_indices = generic_alterations \
-            .loc[(generic_alterations[column_name] == 1) & (treatment["Treatment"] == 0), column_name].index
-        normal_indices = generic_alterations \
-            .loc[(generic_alterations[column_name] == 0) & (treatment["Treatment"] == 0), column_name].index
-
-        survived_time_mutated_treatment = survival_time_event.loc[mutated_indices_treatment, "time"].mean()
-        survived_time_normal_treatment = survival_time_event.loc[normal_indices_treatment, "time"].mean()
-        survived_time_mutated = survival_time_event.loc[mutated_indices, "time"].mean()
-        survived_time_normal = survival_time_event.loc[normal_indices, "time"].mean()
-
-        t1 = survived_time_mutated_treatment - survived_time_normal_treatment
-        t2 = survived_time_mutated - survived_time_normal
-
-        gene_effectiveness.append((column_name, t1 - t2))
-    gene_effectiveness.sort(key=lambda _tuple: _tuple[1], reverse=True)
-
-    print('gene_effectiveness')
-    for gene in gene_effectiveness:
-        print(gene)
-
     rank_limit = 20
-    effective_genes = [gene_effectiveness[idx][0] for idx in range(rank_limit)]
+
+    gene_effectiveness_max120 = find_effective_genes(survival_time_event, generic_alterations, treatment)[:rank_limit]
+    print_effective_genes(gene_effectiveness_max120)
+
+    set_max_survival_time(survival_time_event, 999)
+    gene_effectiveness_max999 = find_effective_genes(survival_time_event, generic_alterations, treatment)[:rank_limit]
+    print_effective_genes(gene_effectiveness_max999)
+
+    effective_genes_max120 = [_tuple[0] for _tuple in gene_effectiveness_max120]
+    effective_genes_max999 = [_tuple[0] for _tuple in gene_effectiveness_max999]
+    effective_genes_intersection = list(set(effective_genes_max120) & set(effective_genes_max999))
+    print('effective_genes_intersection', effective_genes_intersection)
+    print('count', len(effective_genes_intersection))
+
+    # effective_genes = [gene_effectiveness[idx][0] for idx in range(rank_limit)]
+    # effective_genes = [54, 238, 11, 259, 234, 223, 158]
+    # effective_genes = [f'G{gene_number}' for gene_number in effective_genes]
+    effective_genes = effective_genes_intersection
 
     # PCA
     generic_alterations = generic_alterations.iloc[:, 1:]
@@ -120,3 +146,7 @@ if __name__ == '__main__':
         ax.scatter(principal_df.loc[indices_to_keep, 'pc1'], principal_df.loc[indices_to_keep, 'pc2'], s=20)
     ax.legend(groups)
     plt.savefig("output3.png")
+
+
+if __name__ == '__main__':
+    main()
