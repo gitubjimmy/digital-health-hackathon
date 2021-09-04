@@ -2,6 +2,7 @@ from data_loader import get_data
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 import pandas as pd
+import networkx as nx
 import numpy as np
 
 if __name__ == '__main__':
@@ -40,8 +41,9 @@ if __name__ == '__main__':
                 end_gene_idx = mutated_gene_indices[end_idx] - 1
                 relativity_graph[start_gene_idx][end_gene_idx] += 1
                 relativity_graph[end_gene_idx][start_gene_idx] = relativity_graph[start_gene_idx][end_gene_idx]
-    relativity_df = pd.DataFrame(relativity_graph)
-    print(relativity_df.to_string())
+    to_csv = '\n'.join([','.join([str(cell) for cell in row]) for row in relativity_graph])
+    with open('data/relativity_graph.csv', 'w') as output_csv:
+        output_csv.write(to_csv)
 
     # effective genes
     gene_effectiveness = []
