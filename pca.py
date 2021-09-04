@@ -2,6 +2,7 @@ from data_loader import get_data
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 import pandas as pd
+import numpy as np
 
 if __name__ == '__main__':
     clinical_variables, generic_alterations, survival_time_event, treatment = get_data()
@@ -18,7 +19,7 @@ if __name__ == '__main__':
     group_label = [0 for i in range(n_data)]
     for k in range(divisor):
         start = int(n_data / divisor * k)
-        end = int(n_data/divisor*(k + 1))
+        end = int(n_data / divisor * (k + 1))
         for idx in range(start, end):
             had_treatment = treatment.loc[idx, "Treatment"]
             group_label[sorted_survival_time_event.iloc[idx, 0]] = k + 1 if had_treatment else -(k + 1)
@@ -27,6 +28,22 @@ if __name__ == '__main__':
     plt.hist(group_label, range=(-divisor, divisor + 1), bins=2 * divisor + 1)
     plt.savefig("output2.png")
 
+    # gene relativity graph
+    relativity_graph = [[0 for _ in range(300)] for _ in range(300)]
+    for data_idx in range(n_data):
+        mutated_genes = generic_alterations.loc[data_idx, generic_alterations.loc[data_idx] == 1].index
+        mutated_gene_indices = [mutated_gene.split('G')[1] for mutated_gene in mutated_genes if 'G' in mutated_gene]
+        mutated_gene_indices = [int(gene_idx) for gene_idx in mutated_gene_indices if gene_idx.isnumeric()]
+        for start_idx in range(len(mutated_gene_indices)):
+            for end_idx in range(start_idx + 1, len(mutated_gene_indices)):
+                start_gene_idx = mutated_gene_indices[start_idx] - 1
+                end_gene_idx = mutated_gene_indices[end_idx] - 1
+                relativity_graph[start_gene_idx][end_gene_idx] += 1
+                relativity_graph[end_gene_idx][start_gene_idx] = relativity_graph[start_gene_idx][end_gene_idx]
+    relativity_df = pd.DataFrame(relativity_graph)
+    print(relativity_df.to_string())
+
+    # effective genes
     gene_effectiveness = []
     for gen_idx in range(300):
         column_name = f"G{gen_idx + 1}"
@@ -40,6 +57,7 @@ if __name__ == '__main__':
     rank_limit = 10
     effective_genes = [gene_effectiveness[idx][0] for idx in range(rank_limit)]
 
+    # PCA
     generic_alterations = generic_alterations.iloc[:, 1:]
     generic_alterations = generic_alterations.loc[:, effective_genes]
     # clinical_variables = clinical_variables.iloc[:, 1:]
