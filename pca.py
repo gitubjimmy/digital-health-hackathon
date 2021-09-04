@@ -8,15 +8,16 @@ import numpy as np
 if __name__ == '__main__':
     clinical_variables, generic_alterations, survival_time_event, treatment = get_data()
     n_data = treatment.shape[0]
+    max_survival_time = 120
     for idx in range(n_data):
         if survival_time_event.loc[idx, "event"] == 0:
-            survival_time_event.at[idx, "time"] = 999
+            survival_time_event.at[idx, "time"] = max_survival_time
     hist = survival_time_event.hist(column="time", range=(0, 200), bins=10)
     fig = hist[0][0].get_figure()
     fig.savefig("output.png")
 
     sorted_survival_time_event = survival_time_event.sort_values(by="time")
-    divisor = 3
+    divisor = 1
     group_label = [0 for i in range(n_data)]
     for k in range(divisor):
         start = int(n_data / divisor * k)
@@ -90,7 +91,7 @@ if __name__ == '__main__':
     for gene in gene_effectiveness:
         print(gene)
 
-    rank_limit = 10
+    rank_limit = 20
     effective_genes = [gene_effectiveness[idx][0] for idx in range(rank_limit)]
 
     # PCA
