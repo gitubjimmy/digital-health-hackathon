@@ -66,12 +66,29 @@ if __name__ == '__main__':
     gene_effectiveness = []
     for gen_idx in range(300):
         column_name = f"G{gen_idx + 1}"
-        mutated_indices = generic_alterations.loc[generic_alterations[column_name] == 1, column_name].index
-        normal_indices = generic_alterations.loc[generic_alterations[column_name] == 0, column_name].index
+        mutated_indices_treatment = generic_alterations\
+            .loc[(generic_alterations[column_name] == 1) & (treatment["Treatment"] == 1), column_name].index
+        normal_indices_treatment = generic_alterations\
+            .loc[(generic_alterations[column_name] == 0) & (treatment["Treatment"] == 1), column_name].index
+        mutated_indices = generic_alterations \
+            .loc[(generic_alterations[column_name] == 1) & (treatment["Treatment"] == 0), column_name].index
+        normal_indices = generic_alterations \
+            .loc[(generic_alterations[column_name] == 0) & (treatment["Treatment"] == 0), column_name].index
+
+        survived_time_mutated_treatment = survival_time_event.loc[mutated_indices_treatment, "time"].mean()
+        survived_time_normal_treatment = survival_time_event.loc[normal_indices_treatment, "time"].mean()
         survived_time_mutated = survival_time_event.loc[mutated_indices, "time"].mean()
         survived_time_normal = survival_time_event.loc[normal_indices, "time"].mean()
-        gene_effectiveness.append((column_name, abs(survived_time_mutated - survived_time_normal)))
+
+        t1 = survived_time_mutated_treatment - survived_time_normal_treatment
+        t2 = survived_time_mutated - survived_time_normal
+
+        gene_effectiveness.append((column_name, t1 - t2))
     gene_effectiveness.sort(key=lambda _tuple: _tuple[1], reverse=True)
+
+    print('gene_effectiveness')
+    for gene in gene_effectiveness:
+        print(gene)
 
     rank_limit = 10
     effective_genes = [gene_effectiveness[idx][0] for idx in range(rank_limit)]
