@@ -31,19 +31,36 @@ if __name__ == '__main__':
 
     # gene relativity graph
     relativity_graph = [[0 for _ in range(300)] for _ in range(300)]
+    relativity_graph_xor = [[0 for _ in range(300)] for _ in range(300)]
+    mutation_per_person = []
     for data_idx in range(n_data):
         mutated_genes = generic_alterations.loc[data_idx, generic_alterations.loc[data_idx] == 1].index
         mutated_gene_indices = [mutated_gene.split('G')[1] for mutated_gene in mutated_genes if 'G' in mutated_gene]
         mutated_gene_indices = [int(gene_idx) for gene_idx in mutated_gene_indices if gene_idx.isnumeric()]
+        mutation_per_person.append(len(mutated_gene_indices))
+
+        normal_genes = generic_alterations.loc[data_idx, generic_alterations.loc[data_idx] == 0].index
+        normal_gene_indices = [normal_gene.split('G')[1] for normal_gene in normal_genes if 'G' in normal_gene]
+        normal_gene_indices = [int(gene_idx) for gene_idx in normal_gene_indices if gene_idx.isnumeric()]
         for start_idx in range(len(mutated_gene_indices)):
+            start_gene_idx = mutated_gene_indices[start_idx] - 1
             for end_idx in range(start_idx + 1, len(mutated_gene_indices)):
-                start_gene_idx = mutated_gene_indices[start_idx] - 1
                 end_gene_idx = mutated_gene_indices[end_idx] - 1
                 relativity_graph[start_gene_idx][end_gene_idx] += 1
                 relativity_graph[end_gene_idx][start_gene_idx] = relativity_graph[start_gene_idx][end_gene_idx]
+
+            for end_idx in range(len(normal_gene_indices)):
+                end_gene_idx = normal_gene_indices[end_idx] - 1
+                relativity_graph_xor[start_gene_idx][end_gene_idx] += 1
     to_csv = '\n'.join([','.join([str(cell) for cell in row]) for row in relativity_graph])
-    with open('data/relativity_graph.csv', 'w') as output_csv:
+    to_csv_xor = '\n'.join([','.join([str(cell) for cell in row]) for row in relativity_graph_xor])
+    with open('./data/relativity_graph.csv', 'w') as output_csv:
         output_csv.write(to_csv)
+    with open('./data/relativity_graph_xor.csv', 'w') as output_csv:
+        output_csv.write(to_csv_xor)
+    print('average_mutation_per_person', sum(mutation_per_person)/len(mutation_per_person))
+    flat_relativity_graph_xor = [cell_value for row in relativity_graph_xor for cell_value in row if cell_value > 0]
+    print('min value in relativity_graph_xor', min(flat_relativity_graph_xor))
 
     # effective genes
     gene_effectiveness = []
