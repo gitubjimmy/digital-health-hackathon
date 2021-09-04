@@ -27,20 +27,34 @@ if __name__ == '__main__':
     plt.hist(group_label, range=(-divisor, divisor + 1), bins=2 * divisor + 1)
     plt.savefig("output2.png")
 
+    gene_effectiveness = []
+    for gen_idx in range(300):
+        column_name = f"G{gen_idx + 1}"
+        mutated_indices = generic_alterations.loc[generic_alterations[column_name] == 1, column_name].index
+        normal_indices = generic_alterations.loc[generic_alterations[column_name] == 0, column_name].index
+        survived_time_mutated = survival_time_event.loc[mutated_indices, "time"].mean()
+        survived_time_normal = survival_time_event.loc[normal_indices, "time"].mean()
+        gene_effectiveness.append((column_name, abs(survived_time_mutated - survived_time_normal)))
+    gene_effectiveness.sort(key=lambda _tuple: _tuple[1], reverse=True)
+
+    rank_limit = 10
+    effective_genes = [gene_effectiveness[idx][0] for idx in range(rank_limit)]
+
     generic_alterations = generic_alterations.iloc[:, 1:]
-    clinical_variables = clinical_variables.iloc[:, 1:]
-    generic_alterations = generic_alterations.join(clinical_variables)
+    generic_alterations = generic_alterations.loc[:, effective_genes]
+    # clinical_variables = clinical_variables.iloc[:, 1:]
+    # generic_alterations = generic_alterations.join(clinical_variables)
 
     pca = PCA(n_components=2)
     principal_components = pca.fit_transform(generic_alterations)
     principal_df = pd.DataFrame(data=principal_components, columns=['pc1', 'pc2'])
     principal_df["group"] = group_label
 
-    print(principal_df)
+    # print(principal_df)
 
     # principal axis
-    with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-        print(pd.DataFrame(data=pca.components_).transpose())
+    # with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+    #     print(pd.DataFrame(data=pca.components_).transpose())
 
     plt.clf()
     fig = plt.figure(figsize=(8, 8))
