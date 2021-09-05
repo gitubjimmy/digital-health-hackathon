@@ -6,7 +6,7 @@
 
 import pathlib
 
-ROOT = pathlib.Path(__file__).resolve()
+ROOT = pathlib.Path(__file__).resolve().parent
 
 OUTPUT_FILE_PATH = ROOT / 'output.txt'
 
