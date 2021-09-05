@@ -7,12 +7,23 @@ import pandas as pd
 
 from utils import kill_stderr
 
+import functools
+
+
+csv_loader = functools.partial(pd.read_csv, index_col=0)
+
+
+def get_data_dir():
+    from config import ROOT
+    return ROOT / 'data'
+
 
 def get_data():
-    clinical_variables = pd.read_csv('./data/Clinical_Variables.csv')
-    generic_alterations = pd.read_csv('./data/Genetic_alterations.csv')
-    survival_time_event = pd.read_csv('./data/Survival_time_event.csv')
-    treatment = pd.read_csv('./data/Treatment.csv')
+    data_dir = get_data_dir()
+    clinical_variables = csv_loader(data_dir / 'Clinical_Variables.csv')
+    generic_alterations = csv_loader(data_dir / 'Genetic_alterations.csv')
+    survival_time_event = csv_loader(data_dir / 'Survival_time_event.csv')
+    treatment = csv_loader(data_dir / 'Treatment.csv')
 
     return clinical_variables, generic_alterations, survival_time_event, treatment
 
