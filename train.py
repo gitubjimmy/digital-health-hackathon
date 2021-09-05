@@ -2,7 +2,7 @@ import torch
 
 from config import PATH
 from data_prep_utils import get_data_loaders
-from model import optimizer, net, criterion
+from models import optimizer, net, criterion
 from utils import file_output
 
 if __name__ == '__main__':

@@ -20,6 +20,14 @@ PATH = ROOT / 'cifar_net.pth'
 # HYPER PARAMETERS  todo: hyper-parameter as json?
 #
 
+ACTIVATION: str = 'relu'
+
+IN_CHANNELS: int
+
+CHANNELS: int
+
+NUM_LAYERS: int
+
 BATCH_SIZE: int
 
 INPUT_SIZE: ...
