@@ -4,6 +4,10 @@
 # just write your configs down in this block:
 #
 
+#
+# PATH CONFIGS
+#
+
 import pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parent
@@ -12,7 +16,15 @@ OUTPUT_FILE_PATH = ROOT / 'output.txt'
 
 PATH = ROOT / 'cifar_net.pth'
 
-INPUT = None
+#
+# HYPER PARAMETERS  todo: hyper-parameter as json?
+#
+
+BATCH_SIZE: int
+
+INPUT_SIZE: ...
+
+EPOCH: ...
 
 #
 # ==============================================================================
