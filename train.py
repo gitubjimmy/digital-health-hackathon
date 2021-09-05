@@ -1,7 +1,7 @@
 import torch
 
 from config import PATH
-from data_loader import get_data_loaders
+from data_prep_utils import get_data_loaders
 from model import optimizer, net, criterion
 from utils import file_output
 
