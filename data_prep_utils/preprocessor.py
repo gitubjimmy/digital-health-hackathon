@@ -32,13 +32,15 @@ class StandardYProcessor:
         event = self._validate_data(event)
         self.mask_ = event != 0
         self.scaler_ = MinMaxScaler(feature_range=self.feature_range, copy=self.copy, clip=self.clip)
-        self.scaler_.fit(cast(np.ndarray, time)[self.mask_])
+        self.scaler_.fit(cast(np.ndarray, time)[self.mask_].reshape(-1, 1))
         return self
 
     def transform(self, time=None, event=None):
         time, event = self._get_new_or_cached_data(time, event)
         mask = event != 0
-        time[mask] = self.scaler_.transform(time[mask])
+        if self.copy:
+            time = time.copy()
+        time[mask] = self.scaler_.transform(time[mask].reshape(-1, 1)).reshape(-1)
         time[mask == 0] = self.default_value
         return time
 
@@ -56,7 +58,7 @@ class StandardYProcessor:
 
     @staticmethod
     def _validate_data(data):
-        return cast(np.ndarray, check_array(data, accept_sparse=True, force_all_finite="allow-nan"))
+        return cast(np.ndarray, check_array(data, accept_sparse=True, force_all_finite="allow-nan", ensure_2d=False))
 
 
 class TanhYProcessor(StandardYProcessor):

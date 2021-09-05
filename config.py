@@ -22,17 +22,15 @@ PATH = ROOT / 'cifar_net.pth'
 
 ACTIVATION: str = 'relu'
 
-IN_CHANNELS: int
+IN_CHANNELS: int = 311
 
-CHANNELS: int
+CHANNELS: int = 512
 
-NUM_LAYERS: int
+NUM_LAYERS: int = 5
 
-BATCH_SIZE: int
+BATCH_SIZE: int = 25
 
-INPUT_SIZE: ...
-
-EPOCH: ...
+EPOCH: ... = 10
 
 #
 # ==============================================================================
