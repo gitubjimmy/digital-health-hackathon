@@ -54,7 +54,7 @@ def main():
 
     sorted_survival_time_event = survival_time_event.sort_values(by="time")
     divisor = 1
-    group_label = [0 for i in range(n_data)]
+    group_label = [0 for _ in range(n_data)]
     for k in range(divisor):
         start = int(n_data / divisor * k)
         end = int(n_data / divisor * (k + 1))
@@ -100,7 +100,7 @@ def main():
     print('min value in relativity_graph_xor', min(flat_relativity_graph_xor))
 
     # effective genes
-    rank_limit = 20
+    rank_limit = 50
 
     gene_effectiveness_max120 = find_effective_genes(survival_time_event, generic_alterations, treatment)[:rank_limit]
     print_effective_genes(gene_effectiveness_max120)
@@ -121,6 +121,14 @@ def main():
     effective_genes = effective_genes_intersection
 
     # PCA
+
+    # remove alive data
+    generic_alterations = generic_alterations.loc[survival_time_event["event"] == 1]
+    clinical_variables = clinical_variables.loc[survival_time_event["event"] == 1]
+    treatment = treatment.loc[survival_time_event["event"] == 1]
+    group_label = [group_label[idx] for idx in range(len(group_label)) if idx in treatment.index]
+    survival_time_event = survival_time_event.loc[survival_time_event["event"] == 1]
+
     generic_alterations = generic_alterations.iloc[:, 1:]
     generic_alterations = generic_alterations.loc[:, effective_genes]
     # clinical_variables = clinical_variables.iloc[:, 1:]
