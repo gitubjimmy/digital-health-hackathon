@@ -31,6 +31,7 @@ jobs:
           cml-publish output_train_fold_4.png --md >> output.md
           cat output.txt >> output.md
           cml-publish output_train_whole.png --md >> output.md
+          python test.py >> output.md
 
           cml-send-comment output.md
 
