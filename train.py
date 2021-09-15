@@ -77,7 +77,7 @@ def train():
             plt.ylabel("loss")
             plt.grid(True)
             plt.legend()
-            plt.imsave(f"output_train_fold_{fold}.png")
+            plt.savefig(f"output_train_fold_{fold}.png")
 
     best_fold = 0
     best_loss = float('inf')
@@ -139,7 +139,7 @@ def train():
     plt.grid(True)
     plt.minorticks_on()
 
-    plt.imsave(f"output_train_whole.png")
+    plt.savefig(f"output_train_whole.png")
 
 
 if __name__ == '__main__':
