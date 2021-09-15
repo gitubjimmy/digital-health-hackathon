@@ -2,8 +2,6 @@ def train():
 
     import os
     import glob
-    import numpy as np
-    import matplotlib.pyplot as plt
     from sklearn.metrics import r2_score
     from sklearn.model_selection import KFold
     import torch
@@ -12,7 +10,7 @@ def train():
     import torchinfo
 
     import config
-    from models.model import get_model
+    from models import get_model
     from data_prep_utils import get_processed_data, get_loader
     from train_utils import RegressionTrainer, visualize_regression, visualize_learning
     from utils import file_output
@@ -25,9 +23,13 @@ def train():
 
     criterion = torch.nn.MSELoss()
     optimizer_class = torch.optim.Adam
-    optimizer_options = dict(lr=1e-3)
-    scheduler_class = torch.optim.lr_scheduler.StepLR
-    scheduler_options = dict(step_size=10, gamma=1e-1 ** 0.5)
+    optimizer_options = dict(lr=1e-1)
+    scheduler_class = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts
+    scheduler_options = dict(T_0=10, T_mult=2, eta_min=1e-4, last_epoch=-1)
+    # optimizer_class = torch.optim.Adam
+    # optimizer_options = dict(lr=1e-3)
+    # scheduler_class = torch.optim.lr_scheduler.StepLR
+    # scheduler_options = dict(step_size=10, gamma=1e-1 ** 0.5)
     num_folds = config.NUM_K_FOLD
     num_epochs = config.EPOCH_PER_K_FOLD
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
