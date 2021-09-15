@@ -20,7 +20,7 @@ def train():
 
     net = get_model()
     summary = torchinfo.summary(net, dataset[0][0].shape, verbose=0)  # 1: print, 0: return string
-    print("\nModel Summary:\n{}\n".format(summary))
+    print("\nModel Summary:\n{}\n".format("\\\n".join(str(summary).splitlines())))
 
     criterion = torch.nn.MSELoss()
     optimizer_class = torch.optim.Adam

@@ -164,14 +164,15 @@ class TimerLoggerMixin(object):
                 dataset_length = whole
             else:
                 _, _, dataset_length = get_loader_information(whole or self.train_iter)
-            log = (
-                f'[Train]\t '
-                f'Progress: {dataset_length}/{dataset_length} '
-                f'(100.00%), \tAverage Loss: {loss:.6f}'
-            )
             if self.progress:
-                log = '\r' + log
-            self.log_function(log)
+                log = f'\r[Train]\t Progress: {dataset_length}/{dataset_length} (100.00%), \t'
+            else:
+                log = f'[Train]\t '
+            log += f'Average Loss: {loss:.6f}'
+            if self.progress:
+                self.log_function(log)
+            else:
+                self.log_function(log, end='\t ')
 
     def _log_eval(self, loss, test=False):
         if self.verbose:
