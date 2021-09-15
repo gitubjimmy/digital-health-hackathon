@@ -32,6 +32,8 @@ jobs:
           cat output.txt >> output.md
           cml-publish output_train_whole.png --md >> output.md
 
+          cml-send-comment output.md
+
 #          echo "## Training model  " >> output.md
 #          cat output.txt >> output.md
 
@@ -40,5 +42,3 @@ jobs:
 #          echo "## Testing model  " >> output.md
 #          cml-publish sample.png --md >> output.md
 #          cat output.txt >> output.md
-
-          cml-send-comment output.md
