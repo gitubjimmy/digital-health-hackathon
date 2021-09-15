@@ -10,7 +10,7 @@ class PandasDataset(torch.utils.data.Dataset):
             self,
             dataframe: "pd.DataFrame",
             label_target: str,
-            drop_nan: bool =True,
+            drop_nan: bool = True,
             dtype: torch.dtype = None,
     ) -> None:
         super().__init__()

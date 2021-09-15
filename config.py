@@ -37,7 +37,7 @@ BATCH_SIZE: int = 5
 
 NUM_K_FOLD = 5
 
-EPOCH_PER_K_FOLD: int = 25
+EPOCH_PER_K_FOLD: int = 100
 
 #
 # ==============================================================================

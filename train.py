@@ -26,7 +26,7 @@ def train():
     optimizer_class = torch.optim.Adam
     optimizer_options = dict(lr=1e-3)
     scheduler_class = torch.optim.lr_scheduler.StepLR
-    scheduler_options = dict(step_size=5)
+    scheduler_options = dict(step_size=10)
     fold_count = config.NUM_K_FOLD
     num_epochs = config.EPOCH_PER_K_FOLD
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -78,6 +78,7 @@ def train():
             plt.grid(True)
             plt.legend()
             plt.savefig(f"output_train_fold_{fold}.png")
+        break
 
     best_fold = 0
     best_loss = float('inf')
@@ -90,6 +91,7 @@ def train():
 
     net = get_model()
     net.load_state_dict(torch.load(checkpoint)['model'])
+    net.to(device)
 
     with torch.no_grad():
         prediction = []
@@ -107,11 +109,11 @@ def train():
             running_loss += loss.item() * labels.shape[0]
 
         prediction = torch.cat(prediction, dim=0).view(-1, 1).numpy()
-        Y_train_r2 = torch.cat(Y_train_r2, dim=0)
+        Y_train_r2 = torch.cat(Y_train_r2, dim=0).view(-1, 1).numpy()
         sc_val = dataset.y_proc.scaler_
         prediction_train = sc_val.inverse_transform(prediction)
-        Y_train_r2 = sc_val.inverse_transform(Y_train_r2.reshape(-1, 1))
-        r2_train = r2_score(Y_train_r2, prediction_train.reshape(-1))
+        Y_train_r2 = sc_val.inverse_transform(Y_train_r2)
+        r2_train = r2_score(Y_train_r2, prediction_train)
         loss_train = running_loss / len(dataset)
 
         file_output('Train MSE: {:.4f}\tTrain R2 score: {:.4f}'.format(loss_train, r2_train))
@@ -121,7 +123,7 @@ def train():
     plt.plot([0, 200], [0, 200], color='black')
     plt.scatter(
         Y_train_r2, prediction_train,
-        c=np.abs(Y_train_r2 - prediction_train), vmax=2.5, vmin=-0.5, cmap='jet', alpha=0.5
+        c=np.abs(Y_train_r2 - prediction_train), vmax=2.5, vmin=-0., cmap='jet', alpha=0.5
     )
     plt.colorbar(label='Error')
 
@@ -130,7 +132,7 @@ def train():
     plt.ylabel('Prediction')
 
     plt.text(
-        0, 200,
+        100, 0,
         f'Whole MSE: {loss_train:.4f}\nWhole R2 score: {r2_train:.4f}',
         fontsize=25,
         bbox={'boxstyle': 'square', 'ec': (1,1,1), 'fc': (1,1,1), 'linestyle': '--', 'color': 'black'}
