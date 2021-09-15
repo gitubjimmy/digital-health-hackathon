@@ -78,7 +78,6 @@ def train():
             plt.grid(True)
             plt.legend()
             plt.savefig(f"output_train_fold_{fold}.png")
-        break
 
     best_fold = 0
     best_loss = float('inf')
