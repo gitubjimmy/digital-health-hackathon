@@ -52,7 +52,7 @@ def train():
     result = {}
 
     for fold, (train_idx, val_idx) in enumerate(kf.split(dataset)):
-        print(f"<Fold {fold}>")
+        print(f"\n<Fold {fold}>")
 
         train_sampler = torch.utils.data.SubsetRandomSampler(train_idx)
         val_sampler = torch.utils.data.SubsetRandomSampler(val_idx)

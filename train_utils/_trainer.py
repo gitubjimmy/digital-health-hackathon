@@ -142,7 +142,10 @@ class TimerLoggerMixin(object):
 
     def _log_step(self, epoch: int):
         if self.verbose:
-            self.log_function(f'\nEpoch {epoch}')
+            if self.progress:
+                self.log_function(f'\nEpoch {epoch}')
+            else:
+                self.log_function(f'<Epoch> {epoch}', end=' ')
 
     def _log_train_doing(self, loss, iteration, whole=None):
         if self.verbose and self.progress:
