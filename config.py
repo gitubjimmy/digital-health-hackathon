@@ -33,6 +33,8 @@ CHANNELS: int = 512
 
 NUM_LAYERS: int = 5
 
+DROPOUT_RATE: float = 0.4
+
 BATCH_SIZE: int = 5
 
 NUM_K_FOLD = 5

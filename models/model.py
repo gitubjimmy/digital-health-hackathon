@@ -4,7 +4,7 @@ import torch.nn.functional as f
 import collections
 
 
-class MLP(nn.ModuleList):
+class MLP(nn.Module):
 
     """
     Multi Layer Perceptron.
@@ -33,45 +33,60 @@ class MLP(nn.ModuleList):
             out_channels,
             channels,
             num_layers=None,
+            dropout_rate=None,
             activation='relu'
     ):
+
         super().__init__()
+        self.layers = nn.ModuleList()
+
         if isinstance(channels, collections.Iterable) and num_layers is None:
             current = in_channels
             channels = channels if isinstance(channels, (tuple, list)) else list(channels)
             for item in channels:
-                self.append(nn.Linear(current, item))
+                self.layers.append(nn.Linear(current, item))
                 current = item
-            self.append(nn.Linear(current, out_channels))
+            self.last_layer = nn.Linear(current, out_channels)
+
         elif isinstance(channels, int) and isinstance(num_layers, int):
             current = in_channels
             for _ in range(num_layers):
-                self.append(nn.Linear(current, channels))
+                self.layers.append(nn.Linear(current, channels))
                 current = channels
                 channels //= 2
-            self.append(nn.Linear(current, out_channels))
+            self.last_layer = nn.Linear(current, out_channels)
+
         else:
             raise TypeError(
                 "(channels, num_layers) must be (Iterable, None) or (int, int), "
                 "got (%s, %s)." % (type(channels).__name__, type(num_layers).__name__)
             )
+
+        if dropout_rate is not None:
+            self.dropout = nn.Dropout(dropout_rate)
+        else:
+            self.dropout = lambda x: x
+
         if callable(activation):
             self.activation = activation
         elif hasattr(f, activation):
             self.activation = getattr(f, activation)
         elif hasattr(nn, activation):
             self.activation = getattr(f, activation)()
+        elif activation is None:
+            self.activation = lambda x: x
         else:
             raise TypeError("Wrong activation function: %r" % activation)
 
     def extra_repr(self):
-        return "(non-linearity): %r" % self.activation
+        if not isinstance(self.activation, nn.Module):
+            return "(non-linearity): %r" % self.activation
+        return ""
 
     def forward(self, x):  # noqa
-        num_layers = len(self) - 1
-        for index in range(num_layers):
-            x = self.activation(self[index](x))
-        return self[-1](x)
+        for layer in self.layers:
+            x = self.dropout(self.activation(layer(x)))
+        return self.last_layer(x)
 
 
 def get_model(**override):
@@ -81,6 +96,7 @@ def get_model(**override):
         out_channels=1,
         channels=config.CHANNELS,
         num_layers=config.NUM_LAYERS,
+        dropout_rate=config.DROPOUT_RATE,
         activation=config.ACTIVATION
     )
     options.update(override)
