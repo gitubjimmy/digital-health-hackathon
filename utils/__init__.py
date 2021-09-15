@@ -26,6 +26,9 @@ def file_output(data: str):
     file_output.count += len(lines)
 
 
+file_output.count = 0
+
+
 @contextlib.contextmanager
 def kill_stderr():  # context manager
     """
@@ -40,6 +43,7 @@ def kill_stderr():  # context manager
     Downloading https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz to data/cifar-10-python.tar.gz
 
     """
+    original_stderr = sys.stderr
     try:
         # make dummy stderr
         killed_stderr = io.StringIO()
@@ -47,7 +51,7 @@ def kill_stderr():  # context manager
         sys.stderr = killed_stderr
         yield killed_stderr
     finally:  # safe-wrap with exception handler
-        sys.stderr = sys.__stderr__  # NOTE: __stderr__ - original stderr
+        sys.stderr = original_stderr  # NOTE: __stderr__ - original stderr
 
 
 def without_stderr(func):  # decorator
@@ -59,4 +63,16 @@ def without_stderr(func):  # decorator
     return wrapper
 
 
-file_output.count = 0
+def catch_stdout(func):  # decorator
+    """Decorator that makes function return stdout output string, instead of original function result."""
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs) -> str:
+        original_stdout = sys.stdout
+        try:
+            stdout_catcher = io.StringIO()
+            sys.stdout = stdout_catcher
+            func(*args, **kwargs)
+            return stdout_catcher.getvalue()
+        finally:
+            sys.stdout = original_stdout
+    return wrapper
