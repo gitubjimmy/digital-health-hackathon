@@ -19,7 +19,8 @@ def train():
     dataset = get_processed_data()
 
     net = get_model()
-    torchinfo.summary(net, dataset[0][0].shape, verbose=1)  # 1: print, 0: return string
+    summary = torchinfo.summary(net, dataset[0][0].shape, verbose=0)  # 1: print, 0: return string
+    print("\nModel Summary:\n{}\n".format(summary))
 
     criterion = torch.nn.MSELoss()
     optimizer_class = torch.optim.Adam
@@ -140,3 +141,6 @@ def train():
 
     plt.imsave(f"output_train_whole.png")
 
+
+if __name__ == '__main__':
+    train()
