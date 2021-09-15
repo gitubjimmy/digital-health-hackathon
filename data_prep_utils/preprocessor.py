@@ -7,8 +7,41 @@ from typing import cast
 
 class StandardYProcessor:
     """
-    truncate (convert to nan or given value) y whose event is 0, and min-max scale remaining data.
-    (y: time, event)
+
+    truncate (convert to nan or given value) y whose event is 0 (alive), and min-max scale remaining data.
+
+    Parameters:
+
+        feature_range : tuple (min, max), default=(-1, 1)
+            Desired range of transformed data.
+
+        default_value : Number, default=NaN
+            Value of truncated elements.
+
+        copy : bool, default=True
+            Set to False to perform inplace row normalization and avoid a
+            copy (if the input is already a numpy array).
+
+        clip : bool, default=False
+            Set to True to clip transformed values of held-out data to
+            provided `feature range`.
+
+    Attributes:
+
+        scaler_ : MinMaxScaler
+            backend-scaler which is used in min-max scaling when transform runs.
+
+    Methods:
+
+        fit(time, event)
+            Compute data to be used for later scaling.
+
+        transform(time, event)
+            Scale features of data according to feature_range.
+
+        fit_transform(time, event)
+            Fit to data, then transform it.
+
     """
 
     def __init__(self, *, feature_range=(-1, 1), default_value=np.nan, copy=True, clip=False):
@@ -20,23 +53,26 @@ class StandardYProcessor:
     def _reset(self):
         if hasattr(self, 'scaler_'):
             del self.scaler_
-            del self.mask_
-            del self.time_
-            del self.event_
 
     def fit(self, time, event):
+        """
+        fit(time, event)
+            Compute data to be used for later scaling.
+        """
         self._reset()
-        self.time_ = time
-        self.event_ = event
         time = self._validate_data(time)
         event = self._validate_data(event)
-        self.mask_ = event != 0
         self.scaler_ = MinMaxScaler(feature_range=self.feature_range, copy=self.copy, clip=self.clip)
-        self.scaler_.fit(cast(np.ndarray, time)[self.mask_].reshape(-1, 1))
+        self.scaler_.fit(time[event != 0].reshape(-1, 1))
         return self
 
-    def transform(self, time=None, event=None):
-        time, event = self._get_new_or_cached_data(time, event)
+    def transform(self, time, event):
+        """
+        transform(time, event)
+            Scale features of data according to feature_range.
+        """
+        time = self._validate_data(time)
+        event = self._validate_data(event)
         mask = event != 0
         if self.copy:
             time = time.copy()
@@ -44,16 +80,11 @@ class StandardYProcessor:
         time[mask == 0] = self.default_value
         return time
 
-    def _get_new_or_cached_data(self, time, event):
-        if time is None and event is None:
-            time, event = self.time_, self.event_
-        elif time is not None and event is not None:
-            time, event = self._validate_data(time), self._validate_data(event)
-        else:
-            raise TypeError("transform() takes no or two arguments (1 given)")
-        return time, event
-
     def fit_transform(self, time, event):
+        """
+        fit_transform(time, event)
+            Fit to data, then transform it.
+        """
         return self.fit(time, event).transform(time, event)
 
     @staticmethod
@@ -63,15 +94,52 @@ class StandardYProcessor:
 
 class TanhYProcessor(StandardYProcessor):
     """
-    tanh processor.
-    (y: time, event)
+
+    Min-max scale, followed by applying tanh, y whose event is 1,
+    and set remaining data as default value.
+
+    Parameters:
+
+        feature_range : tuple (min, max), default=(-1, 1)
+            Desired range of data, which will be used as input of tanh.
+
+        default_value : Number, default=NaN
+            Default output of data which is not under tanh transformation.
+
+        copy : bool, default=True
+            Set to False to perform inplace row normalization and avoid a
+            copy (if the input is already a numpy array).
+
+        clip : bool, default=False
+            Set to True to clip transformed values of held-out data to
+            provided `feature range`.
+
+    Attributes:
+
+        scaler_ : MinMaxScaler
+            backend-scaler which is used in min-max scaling when transform runs.
+
+    Methods:
+
+        fit(time, event)
+            Compute data to be used for later scaling.
+
+        transform(time, event)
+            Scale features of data.
+
+        fit_transform(time, event)
+            Fit to data, then transform it.
+
     """
 
     def __init__(self, *, feature_range=(-2, 2), default_value=1, copy=True, clip=False):  # tanh(2) = 0.964..
         super().__init__(feature_range=feature_range, default_value=default_value, copy=copy, clip=clip)
 
-    def transform(self, time=None, event=None):
-        time, event = self._get_new_or_cached_data(time, event)
+    def transform(self, time, event):
+        """
+        transform(time, event)
+            Scale features of data.
+        """
         mask = event != 0
         time[mask] = np.tanh(self.scaler_.transform(time[mask]))
         time[mask == 0] = self.default_value

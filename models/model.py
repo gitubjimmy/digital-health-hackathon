@@ -55,32 +55,33 @@ class MLP(nn.ModuleList):
                 "(channels, num_layers) must be (Iterable, None) or (int, int), "
                 "got (%s, %s)." % (type(channels).__name__, type(num_layers).__name__)
             )
-        if hasattr(f, activation):
+        if callable(activation):
             self.activation = activation
+        elif hasattr(f, activation):
+            self.activation = getattr(f, activation)
+        elif hasattr(nn, activation):
+            self.activation = getattr(f, activation)()
         else:
-            raise TypeError("Wrong activation function name: %s" % activation)
+            raise TypeError("Wrong activation function: %r" % activation)
 
     def extra_repr(self):
-        return "(non-linearity): {}".format(self._get_activation().__name__)
-
-    def _get_activation(self):
-        return getattr(f, self.activation)
+        return "(non-linearity): %r" % self.activation
 
     def forward(self, x):  # noqa
         num_layers = len(self) - 1
-        activation = self._get_activation()
         for index in range(num_layers):
-            x = activation(self[index](x))
+            x = self.activation(self[index](x))
         return self[-1](x)
 
 
-def get_model():
-
+def get_model(**override):
     import config
-    return MLP(
+    options = dict(
         in_channels=config.IN_CHANNELS,
         out_channels=1,
         channels=config.CHANNELS,
         num_layers=config.NUM_LAYERS,
         activation=config.ACTIVATION
     )
+    options.update(override)
+    return MLP(**options)

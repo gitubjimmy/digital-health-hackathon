@@ -5,10 +5,15 @@
 #
 
 #
+# IMPORT
+#
+import sys
+import types
+import pathlib
+
+#
 # PATH CONFIGS
 #
-
-import pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parent
 
@@ -17,10 +22,10 @@ OUTPUT_FILE_PATH = ROOT / 'output.txt'
 PATH = ROOT / 'cifar_net.pth'
 
 #
-# HYPER PARAMETERS  todo: hyper-parameter as json?
+# HYPER PARAMETERS
 #
 
-ACTIVATION: str = 'relu'
+ACTIVATION: str = 'leaky_relu'
 
 IN_CHANNELS: int = 311
 
@@ -28,9 +33,11 @@ CHANNELS: int = 512
 
 NUM_LAYERS: int = 5
 
-BATCH_SIZE: int = 25
+BATCH_SIZE: int = 5
 
-EPOCH: ... = 10
+NUM_K_FOLD = 5
+
+EPOCH_PER_K_FOLD: int = 25
 
 #
 # ==============================================================================
@@ -40,7 +47,7 @@ EPOCH: ... = 10
 # If a particular config needs to be mutable,
 # add the name of the particular setting in the following tuple:
 #
-__mutable_attributes__ = ()
+__mutable_attributes__ = ('ACTIVATION', )
 #
 # ==============================================================================
 
@@ -48,10 +55,6 @@ __mutable_attributes__ = ()
 # ==============================================================================
 # Do not change scripts below:
 #
-import sys
-import types
-
-
 class FrozenConfig(types.ModuleType):
     __doc__ = __doc__
 

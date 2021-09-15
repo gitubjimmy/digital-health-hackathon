@@ -1,31 +1,66 @@
-from .data_getter import *
+from .dataset import *
 from .data_loader import *
 from .preprocessor import *
 
-from . import data_getter
+from . import dataset
 from . import data_loader
 from . import preprocessor
 
 
-def get_data_loaders(batch_size=4):
+def get_data_dir():
+    from config import ROOT
+    return ROOT / 'data'
 
+
+def get_raw_data():
+    import pandas as pd
+    import functools
+
+    csv_loader = functools.partial(pd.read_csv, index_col=0)
+
+    data_dir = get_data_dir()
+    clinical_variables = csv_loader(data_dir / 'Clinical_Variables.csv')
+    generic_alterations = csv_loader(data_dir / 'Genetic_alterations.csv')
+    survival_time_event = csv_loader(data_dir / 'Survival_time_event.csv')
+    treatment = csv_loader(data_dir / 'Treatment.csv')
+
+    return clinical_variables, generic_alterations, survival_time_event, treatment
+
+
+def get_processed_data():
+
+    # import libraries
     import torch
-    import torchvision.transforms as transforms
-    from torch.utils.data import DataLoader
-    from torchvision.datasets import CIFAR10
+    import pandas as pd
+    from .dataset import PandasDataset
+    from .preprocessor import StandardYProcessor, MinMaxScaler
+    clinical_variables, generic_alterations, survival_time_event, treatment = get_raw_data()
 
-    from utils import kill_stderr
+    # process clinical variables
+    clinical_proc = MinMaxScaler(feature_range=(0, 1))
+    clinical_variables = pd.DataFrame(
+        clinical_proc.fit_transform(clinical_variables),
+        columns=clinical_variables.columns
+    )
 
-    transform = transforms.Compose(
-        [transforms.ToTensor(),
-         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    # process survival time
+    y_proc = StandardYProcessor(feature_range=(0, 1))
+    y = y_proc.fit_transform(survival_time_event['time'], survival_time_event['event'])
 
-    with kill_stderr():
-        train_set = CIFAR10(root='./data', train=True, download=True, transform=transform)
-    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=2)
+    # concat
+    full = pd.concat([treatment, clinical_variables, generic_alterations], axis=1)
+    full['time'] = y
 
-    with kill_stderr():
-        test_set = CIFAR10(root='./data', train=False, download=True, transform=transform)
-    test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False, num_workers=2)
+    # drop event == 0
+    full = full.drop(full.index[survival_time_event.event == 0])
+    full.index = range(len(full))
 
-    return train_loader, test_loader
+    # convert to pytorch dataset
+    processed_dataset = PandasDataset(full, label_target='time', dtype=torch.float32)
+
+    # for inverse transform, set processor attributes
+    processed_dataset.clinical_proc = clinical_proc
+    processed_dataset.y_proc = y_proc
+
+    # return processed dataset
+    return processed_dataset
