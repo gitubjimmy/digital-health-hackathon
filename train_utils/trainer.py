@@ -64,9 +64,6 @@ class RegressionTrainer(TrainerMixin):
 
     Methods:
 
-        () [call]
-            repeat training and validating for all epochs, followed by testing.
-
         to(device)
             apply to(device) in model, criterion, and all tensors.
 
@@ -82,7 +79,7 @@ class RegressionTrainer(TrainerMixin):
             run training, followed by validating one time.
             returns (train_loss, val_loss).
 
-        run() or fit()
+        run() or fit() or () [call]
             repeat training and validating for all epochs.
             returns train result list, which contains each epoch`s
             (train_loss, val_loss).
@@ -160,17 +157,6 @@ class RegressionTrainer(TrainerMixin):
         self._best_loss = float('inf')
         self._processing_fn = None
         self._current_run_result = None
-
-    #
-    # Call implement: run training, evaluating, followed by testing
-    #
-
-    def __call__(self, train_data=None, val_data=None, test_data=None):
-        with self._with_context():
-            self.run(train_data, val_data)
-        if self.test_iter is not None:
-            self.test(test_data)
-        return self
 
     #
     # Running Methods
@@ -286,7 +272,7 @@ class RegressionTrainer(TrainerMixin):
 
         return train_loss, test_loss
 
-    def run(self, train_data=None, val_data=None):
+    def run(self, train_data=None, val_data=None, split_result=False):
 
         assert self.total_epoch is not None, "You should set total epoch to use run() method."
 
@@ -309,9 +295,12 @@ class RegressionTrainer(TrainerMixin):
                 if self.save_and_load and self._current_epoch and (val_data or self.val_iter):
                     self._load()
 
-            return result
+            if split_result:
+                return [t for t, v in result], [v for t, v in result]
+            else:
+                return result
 
-    fit = run
+    __call__ = fit = run
 
     #
     # State dictionary handler: used in saving and loading parameters
@@ -347,9 +336,9 @@ class RegressionTrainer(TrainerMixin):
     def to(self, *args, **kwargs):  # overwrite this in subclass, for further features
 
         super().to(*args, **kwargs)
-        self._to_apply_inner(self.model)
+        self._to_apply_module(self.model)
         if isinstance(self.criterion, torch.nn.Module):
-            self._to_apply_inner(self.criterion)
+            self._to_apply_module(self.criterion)
         return self
 
     # Internal Parameter Methods

@@ -47,13 +47,11 @@ class CheckpointMixin(object):
                 raise exc
 
     def _require_context(self):
-
         if self._closed:
             raise ValueError('Already closed: %r' % self)
 
     @contextlib.contextmanager
     def _with_context(self):
-
         prev = True
         try:
             prev = self._open()
@@ -78,14 +76,12 @@ class MovableMixin(object):
     #
 
     def to(self, *args, **kwargs):  # overwrite this in subclass, for further features
-
         self._to_set(*args, **kwargs)
         return self
 
     # Internal Device-moving Methods
 
     def _to_set(self, *args, **kwargs):
-
         device, dtype, non_blocking, convert_to_format = torch._C._nn._parse_to(*args, **kwargs)  # noqa
         device = device or self.__to_parse[0]
         dtype = dtype or self.__to_parse[1]
@@ -93,17 +89,15 @@ class MovableMixin(object):
         convert_to_format = convert_to_format or self.__to_parse[3]
         self.__to_parse = (device, dtype, non_blocking, convert_to_format)
 
-    def _to_apply_tensor(self, v):
-
-        device, dtype, _, convert_to_format = self.__to_parse
-        return v.to(device, dtype, memory_format=convert_to_format)
-
-    def _to_apply_inner(self, v):
+    def _to_apply_module(self, v):
         device, dtype, non_blocking, convert_to_format = self.__to_parse
         return v.to(device, dtype, non_blocking, memory_format=convert_to_format)
 
-    def _to_apply_multi_tensor(self, *v):
+    def _to_apply_tensor(self, v):
+        device, dtype, _, convert_to_format = self.__to_parse
+        return v.to(device, dtype, memory_format=convert_to_format)
 
+    def _to_apply_multi_tensor(self, *v):
         return tuple(map(self._to_apply_tensor, v))
 
 
