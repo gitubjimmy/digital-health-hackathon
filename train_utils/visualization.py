@@ -19,8 +19,13 @@ def visualize_learning(
     plt.figure(figsize=figsize)
     plt.plot(range(1, len(train_result) + 1), train_result, label='Training Loss')
     plt.plot(range(1, len(test_result) + 1), test_result, label='Test Loss')
-    min_val_loss = test_result.index(min(test_result)) + 1
-    plt.axvline(min_val_loss, linestyle='--', color='r', label='Early Stopping Checkpoint')
+    min_val_loss_idx = test_result.index(min(test_result))
+    plt.axvline(min_val_loss_idx + 1, linestyle='--', color='r', label='Early Stopping Checkpoint')
+    plt.annotate('epoch: {}\nloss : {:.4f}'.format(min_val_loss_idx + 1, test_result[min_val_loss_idx]),
+                 xy=[min_val_loss_idx + 1, test_result[min_val_loss_idx]],
+                 xytext=[min_val_loss_idx + 20, test_result[min_val_loss_idx] - 1e-3],
+                 bbox=dict(boxstyle='square', color='grey'), fontsize=13, arrowprops=dict(facecolor='blue'))
+
     if title is not None:
         plt.title(title)
     plt.xlabel("epochs")

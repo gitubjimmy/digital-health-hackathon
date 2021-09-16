@@ -67,14 +67,21 @@ class MLP(nn.Module):
         else:
             self.dropout = lambda x: x
 
+        self.activation = self._get_activation(activation)
+
+    @staticmethod
+    def _get_activation(activation):
         if callable(activation):
-            self.activation = activation
-        elif hasattr(f, activation):
-            self.activation = getattr(f, activation)
-        elif hasattr(nn, activation):
-            self.activation = getattr(f, activation)()
+            return activation
+        elif isinstance(activation, str):
+            if hasattr(f, activation):
+                return getattr(f, activation)
+            elif hasattr(nn, activation):
+                return getattr(f, activation)()
+            else:
+                raise TypeError("Wrong activation string: %s" % activation)
         elif activation is None:
-            self.activation = lambda x: x
+            return lambda x: x
         else:
             raise TypeError("Wrong activation function: %r" % activation)
 

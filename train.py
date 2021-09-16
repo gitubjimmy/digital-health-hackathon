@@ -5,6 +5,7 @@ def train():
     from sklearn.metrics import r2_score
     from sklearn.model_selection import KFold
     import torch
+    import torch.nn as nn
     import torch.nn.functional as f
     from torch.utils.data import SubsetRandomSampler
     import torchinfo
@@ -21,7 +22,7 @@ def train():
     summary = torchinfo.summary(net, dataset[0][0].shape, verbose=0)  # 1: print, 0: return string
     print("\nModel Summary:\n\n```\n{}\n```\n".format(summary))  # for raw markdown
 
-    criterion = torch.nn.MSELoss()
+    criterion = nn.MSELoss()
     num_folds = config.NUM_K_FOLD
     num_epochs = config.EPOCH_PER_K_FOLD
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -37,7 +38,7 @@ def train():
             n, criterion, o, s, epoch=num_epochs,
             snapshot_dir=os.path.join(checkpoint_dir, f"fold_{fold_count}"),
             # train_iter=train_loader, val_iter=val_loader,
-            log_interval=1, progress=False
+            verbose=False, progress=False, log_interval=1
         )
         t.to(device)
         return t
@@ -52,18 +53,24 @@ def train():
         train_loader = get_loader(dataset, sampler=SubsetRandomSampler(train_idx))
         val_loader = get_loader(dataset, sampler=SubsetRandomSampler(val_idx))
 
-        with initialize_trainer(fold) as fitter:  # fixme: with 로 이제 안감싸도됨
-            train_result, test_result = fitter.fit(train_loader, val_loader, split_result=True)
-            result[fold] = dict(
-                train_result=train_result, test_result=test_result,
-                best_loss=fitter.best_loss, early_stopping=test_result.index(min(test_result)) + 1
-            )
-            # Plot Learning Curve to check over-fitting
-            visualize_learning(
-                train_result, test_result,
-                title=f"Fold {fold} Learning Curve", figsize=(12, 12),
-                filename=f"output_train_fold_{fold}.png", show=False
-            )
+        fitter = initialize_trainer(fold)
+        train_result, test_result = fitter.fit(train_loader, val_loader, split_result=True)
+        result[fold] = dict(
+            train_result=train_result, test_result=test_result,
+            best_loss=fitter.best_loss, early_stopping=test_result.index(min(test_result)) + 1
+        )
+        # Plot Learning Curve to check over-fitting
+        visualize_learning(
+            train_result, test_result,
+            title=f"Fold {fold} Learning Curve", figsize=(12, 12),
+            filename=f"output_train_fold_{fold}.png", show=False
+        )
+        break
+
+    # todo
+    #  (KFold 5개 --> early stopping 5개의 평균) --> random state 여러개로 평균  (평균 epoch 분포)
+    early_stopping_epochs = []
+    repeat = 100
 
     best_fold = 0
     best_loss = float('inf')
@@ -112,8 +119,6 @@ def train():
         xlabel='Value', ylabel='Prediction', title='Year of Survival Regression',
         filename=f"output_train_whole.png", show=False
     )
-    # todo
-    #  (KFold 5개 --> early stopping 5개의 평균) --> random state 여러개로 평균  (평균 epoch 분포)
 
 
 if __name__ == '__main__':
