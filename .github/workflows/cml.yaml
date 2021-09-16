@@ -19,14 +19,14 @@ jobs:
           mkdir outputs
           python pca.py >> stdout.md
 
-          echo "## sruvival time histogram  \n" >> survival_time_hist.md
-          cml-publish outputs/survival_time_hist.png --md >> pca.md
+          echo "## sruvival time histogram  " >> survival_time_hist.md
+          cml-publish outputs/survival_time_hist.png --md >> survival_time_hist.md
           cml-send-comment survival_time_hist.md
 
           cml-send-comment outputs/group_label_count.md
 
           cml-send-comment stdout.md
 
-          echo "## PCA  \n" >> pca.md
+          echo "## PCA  " >> pca.md
           cml-publish outputs/pca.png --md >> pca.md
           cml-send-comment pca.md
