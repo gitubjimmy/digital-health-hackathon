@@ -18,14 +18,16 @@ jobs:
           sudo apt install aptitude -y
           sudo aptitude install npm -y
       - uses: iterative/setup-cml@v1
+      - name: Setup required packages via pip
+        run: |
+          pip3 install -r requirements.txt
       - name: Train model
+        run: |
+          python train.py
+      - name: Send train results
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          pip3 install -r requirements.txt
-
-          python train.py
-
           echo "# KFold Iteration  " >> kfold_iter.md
           cml-publish output_train_kfold_iter.png --md >> kfold_iter.md
           cml-send-comment kfold_iter.md
@@ -36,10 +38,12 @@ jobs:
           cml-publish output_train_regression.png --md >> train_whole.md
           cml-send-comment train_whole.md
       - name: Test model
+        run: |
+          python test.py >> test.md
+      - name: Send test results
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python test.py >> test.md
           cml-send-comment test.md
   mlp-independent:
     runs-on: ubuntu-latest
@@ -54,19 +58,21 @@ jobs:
           sudo apt install aptitude -y
           sudo aptitude install npm -y
       - uses: iterative/setup-cml@v1
+      - name: Setup required packages via pip
+        run: |
+          pip3 install -r requirements.txt
       - name: Get score from raw data
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          pip3 install -r requirements.txt
-
           python pretest.py >> pretest.md
           cml-send-comment pretest.md
-
+      - name: Trainig Example
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
           python pretrain.py >> stdout.md
-
           cml-send-comment stdout.md
-
           echo "# Example KFold Results  " >> kfold_example.md
           echo "## Fold 0  " >> kfold_example.md
           cml-publish output_train_fold_0.png --md >> kfold_example.md

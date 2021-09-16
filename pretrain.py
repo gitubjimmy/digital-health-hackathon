@@ -60,3 +60,7 @@ def pretrain():
             title=f"Fold {fold} Learning Curve", figsize=(12, 12),
             filename=f"output_train_fold_{fold}.png", show=False
         )
+
+
+if __name__ == '__main__':
+    pretrain()
