@@ -54,7 +54,7 @@ LR_SCHEDULER = 'CosineAnnealingWarmUpRestarts'  # type: str
 
 LR_SCHEDULER_OPTIONS = {
 
-    'T_0': 20, 'T_mult': 1.5, 'eta_max': 1e-3, 'T_up': 5, 'gamma': 0.5
+    'T_0': 20, 'T_mult': 2, 'eta_max': 1e-3, 'T_up': 5, 'gamma': 0.5
 
 }  # type: dict[str, [int, float]]
 
