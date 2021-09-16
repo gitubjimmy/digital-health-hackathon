@@ -20,13 +20,13 @@ jobs:
           python pca.py >> stdout.md
 
           echo "## sruvival time histogram  \n" >> survival_time_hist.md
-          cml-publish survival_time_hist.png --md >> pca.md
+          cml-publish outputs/survival_time_hist.png --md >> pca.md
           cml-send-comment survival_time_hist.md
 
-          cml-send-comment output/group_label_count.md
+          cml-send-comment outputs/group_label_count.md
 
           cml-send-comment stdout.md
 
           echo "## PCA  \n" >> pca.md
-          cml-publish pca.png --md >> pca.md
+          cml-publish outputs/pca.png --md >> pca.md
           cml-send-comment pca.md
