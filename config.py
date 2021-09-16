@@ -19,7 +19,7 @@ ROOT = pathlib.Path(__file__).resolve().parent
 
 OUTPUT_FILE_PATH = ROOT / 'output.txt'
 
-PATH = ROOT / 'cifar_net.pth'
+CHECKPOINT_PATH = ROOT / 'checkpoint'
 
 #
 # HYPER PARAMETERS
@@ -27,27 +27,35 @@ PATH = ROOT / 'cifar_net.pth'
 
 ACTIVATION: str = 'leaky_relu'
 
-IN_CHANNELS: int = 311
+IN_CHANNELS = 311  # type: int
 
-CHANNELS: int = 512
+CHANNELS = 512  # type: int
 
-NUM_LAYERS: int = 5
+NUM_LAYERS = 5  # type: int
 
-DROPOUT_RATE: float = 0.4
+DROPOUT_RATE = 0.5  # type: float
 
-BATCH_SIZE: int = 5
+BATCH_SIZE = 5  # type: int
 
-NUM_K_FOLD = 5
+NUM_K_FOLD = 5  # type: int
 
-EPOCH_PER_K_FOLD: int = 200
+EPOCH_PER_K_FOLD = 1000  # type: int
 
-OPTIMIZER: str = 'Adam'
+OPTIMIZER = 'Adam'  # type: str
 
-OPTIMIZER_OPTIONS: dict = {'lr': 1e-7}
+OPTIMIZER_OPTIONS = {
 
-LR_SCHEDULER: str = 'CosineAnnealingWarmUpRestarts'
+    'lr': 1e-6
 
-LR_SCHEDULER_OPTIONS: dict = dict(T_0=20, T_mult=2, eta_max=1e-3,  T_up=5, gamma=0.5)
+}  # type: dict[str, float]
+
+LR_SCHEDULER = 'CosineAnnealingWarmUpRestarts'  # type: str
+
+LR_SCHEDULER_OPTIONS = {
+
+    'T_0': 20, 'T_mult': 2, 'eta_max': 1e-3, 'T_up': 5, 'gamma': 0.5
+
+}  # type: dict[str, [int, float]]
 
 # OPTIMIZER: str = 'Adam'
 #

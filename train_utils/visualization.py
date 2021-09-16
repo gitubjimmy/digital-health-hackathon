@@ -23,7 +23,7 @@ def visualize_learning(
     plt.axvline(min_val_loss_idx + 1, linestyle='--', color='r', label='Early Stopping Checkpoint')
     plt.annotate('epoch: {}\nloss : {:.4f}'.format(min_val_loss_idx + 1, test_result[min_val_loss_idx]),
                  xy=[min_val_loss_idx + 1, test_result[min_val_loss_idx]],
-                 xytext=[min_val_loss_idx + 20, test_result[min_val_loss_idx] - 1e-3],
+                 xytext=[min_val_loss_idx + 20, test_result[min_val_loss_idx] + 1e-2],
                  bbox=dict(boxstyle='square', color='grey'), fontsize=13, arrowprops=dict(facecolor='blue'))
 
     if title is not None:

@@ -20,7 +20,7 @@ def train():
 
     net = get_model()
     summary = torchinfo.summary(net, dataset[0][0].shape, verbose=0)  # 1: print, 0: return string
-    print("\nModel Summary:\n\n```\n{}\n```\n".format(summary))  # for raw markdown
+    print("\n## Model Summary:  \n\n```\n{}\n```\n".format(summary))  # for raw markdown
 
     criterion = nn.MSELoss()
     num_folds = config.NUM_K_FOLD
@@ -30,6 +30,8 @@ def train():
     checkpoint_dir = 'checkpoint'
     os.makedirs(checkpoint_dir, exist_ok=True)
 
+    train_verbose = False
+
     def initialize_trainer(fold_count):
         n = get_model()
         o = get_optimizer_from_config(n)
@@ -38,7 +40,7 @@ def train():
             n, criterion, o, s, epoch=num_epochs,
             snapshot_dir=os.path.join(checkpoint_dir, f"fold_{fold_count}"),
             # train_iter=train_loader, val_iter=val_loader,
-            verbose=False, progress=False, log_interval=1
+            verbose=train_verbose, progress=False, log_interval=1
         )
         t.to(device)
         return t
@@ -48,7 +50,8 @@ def train():
 
     for fold, (train_idx, val_idx) in enumerate(kf.split(dataset)):
 
-        print(f"\n<Fold {fold}>")
+        if train_verbose:
+            print(f"\n<Fold {fold}>")
 
         train_loader = get_loader(dataset, sampler=SubsetRandomSampler(train_idx))
         val_loader = get_loader(dataset, sampler=SubsetRandomSampler(val_idx))
@@ -65,7 +68,6 @@ def train():
             title=f"Fold {fold} Learning Curve", figsize=(12, 12),
             filename=f"output_train_fold_{fold}.png", show=False
         )
-        break
 
     # todo
     #  (KFold 5개 --> early stopping 5개의 평균) --> random state 여러개로 평균  (평균 epoch 분포)
