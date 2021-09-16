@@ -11,12 +11,15 @@ def pretrain():
     from models import get_model, get_optimizer_from_config, get_lr_scheduler_from_config
     from data_prep_utils import get_processed_data, get_loader
     from train_utils import RegressionTrainer, visualize_learning
+    from utils import file_output
+
+    print("Initializing...")
 
     dataset = get_processed_data()
 
     net = get_model()
     summary = torchinfo.summary(net, dataset[0][0].shape, verbose=0)  # 1: print, 0: return string
-    print(f"\n# Model Summary  \n\n```\n{summary}\n```\n")  # for raw markdown
+    file_output(f"\n# Model Summary  \n\n```\n{summary}\n```\n")  # for raw markdown
 
     criterion = nn.MSELoss()
     num_folds = config.NUM_K_FOLD
@@ -34,10 +37,12 @@ def pretrain():
             n, criterion, o, s, epoch=epoch_count,
             snapshot_dir=os.path.join(checkpoint_dir, f"fold_{fold_count}"),
             # train_iter=train_loader, val_iter=val_loader,
-            verbose=False, progress=False, log_interval=1
+            verbose=True, progress=False, log_interval=1
         )
         t.to(device)
         return t
+
+    print("\n\n\nIterating Example KFolds...")
 
     kf = KFold(n_splits=num_folds, random_state=0, shuffle=True)
     epoch_example = 1000

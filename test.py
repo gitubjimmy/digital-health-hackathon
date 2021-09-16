@@ -4,11 +4,14 @@ import torch
 @torch.no_grad()
 def test():
 
+    print("Loading trained model...")
+
     import os
     import pandas as pd
     import torch
 
     from models import get_model
+    from utils import catch_stdout, file_output
 
     net = get_model()
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -38,6 +41,8 @@ def test():
         df['G{}'.format(num_gene)] = int(has_gene)
         return torch.from_numpy(df.to_numpy())
 
+    print("Building Input Tensor...")
+
     t1_pos_inputs = []
     t1_neg_inputs = []
     t2_pos_inputs = []
@@ -54,6 +59,8 @@ def test():
     t2_pos_tensor = torch.stack(t2_pos_inputs).to(torch.float32).to(device)
     t2_neg_tensor = torch.stack(t2_neg_inputs).to(torch.float32).to(device)
 
+    print("Calculating from Model...")
+
     tau1_score = torch.abs(net(t1_pos_tensor) - net(t1_neg_tensor)).squeeze()
     tau2_score = torch.abs(net(t2_pos_tensor) - net(t2_neg_tensor)).squeeze()
     tau_score = torch.abs(tau1_score - tau2_score)
@@ -65,17 +72,26 @@ def test():
         columns=("tau1", "tau2", "abs(t1-t2)")
     )
 
-    print("# Tau Score from MLP  \n")
-    print()
-    print("## Sort by tau1\n")
-    print(df.sort_values(by="tau1", ascending=False).to_markdown())
-    print()
-    print("## Sort by tau2\n")
-    print(df.sort_values(by="tau2", ascending=False).to_markdown())
-    print()
-    print("## Sort by abs(tau1-tau2)\n")
-    print(df.sort_values(by="abs(t1-t2)", ascending=False).to_markdown())
-    print()
+    print("Writing output...")
+
+    @catch_stdout
+    def stringify():
+
+        print("# Tau Score from MLP  \n")
+        print()
+        print("## Sort by tau1\n")
+        print(df.sort_values(by="tau1", ascending=False).to_markdown())
+        print()
+        print("## Sort by tau2\n")
+        print(df.sort_values(by="tau2", ascending=False).to_markdown())
+        print()
+        print("## Sort by abs(tau1-tau2)\n")
+        print(df.sort_values(by="abs(t1-t2)", ascending=False).to_markdown())
+        print()
+
+    file_output(stringify())
+
+    print("Done!")
 
     return df
 

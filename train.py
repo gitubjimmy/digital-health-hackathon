@@ -25,7 +25,7 @@ def train():
             n, criterion, o, s, epoch=epoch_count,
             snapshot_dir=os.path.join(checkpoint_dir, f"fold_{fold_count}"),
             # train_iter=train_loader, val_iter=val_loader,
-            verbose=False, progress=False, log_interval=1
+            verbose=True, progress=False, log_interval=1
         )
         t.to(device)
         return t
@@ -38,16 +38,22 @@ def train():
     checkpoint_dir = 'checkpoint'
     os.makedirs(checkpoint_dir, exist_ok=True)
 
+    print("Calculating early stopping epoch from fold repeating...\n")
+
     early_stopping_epochs = []
     num_epochs = config.EPOCH_PER_K_FOLD
     repeat = config.K_FOLD_REPEAT
 
     for i in range(1, repeat + 1):
 
+        print("\n\n{Repeat %s}\n\n" % i)
+
         kf = KFold(n_splits=num_folds, random_state=i, shuffle=True)
         early_stopping = 0
 
         for fold, (train_idx, val_idx) in enumerate(kf.split(dataset)):
+
+            print("<Fold %s>\n" % fold)
 
             train_loader = get_loader(dataset, sampler=SubsetRandomSampler(train_idx))
             val_loader = get_loader(dataset, sampler=SubsetRandomSampler(val_idx))
@@ -55,6 +61,8 @@ def train():
             fitter = initialize_trainer(fold, num_epochs)
             _, test_result = fitter.fit(train_loader, val_loader, split_result=True)
             early_stopping += test_result.index(min(test_result)) + 1
+
+            print()
 
         early_stopping /= num_folds
         early_stopping_epochs.append(early_stopping)
@@ -69,6 +77,8 @@ def train():
     early_stopping_epoch = (sum(early_stopping_epochs) // len(early_stopping_epochs)) + 1
     file_output(f"KFold {repeat} repeating - average early stopping epoch: {early_stopping_epoch}")
 
+    print("\n\n\nActual training...\n")
+
     net = get_model()
     optimizer = get_optimizer_from_config(net)
     scheduler = get_lr_scheduler_from_config(optimizer)
@@ -77,7 +87,7 @@ def train():
         net, criterion, optimizer, scheduler, epoch=early_stopping_epoch + 3,
         snapshot_dir=os.path.join(checkpoint_dir, "finalize"),
         train_iter=loader, val_iter=loader,
-        verbose=False, progress=False, log_interval=1
+        verbose=True, progress=False, log_interval=1
     )
     fitter.to(device)
     _, train_result = fitter.fit(split_result=True)
@@ -89,11 +99,18 @@ def train():
         filename=f"output_train_whole.png", show=False
     )
 
+    print("\n\n\nSaving model...\n")
+
     checkpoint = os.path.join(checkpoint_dir, "finalize", f'best_checkpoint_epoch_{str(best_epoch).zfill(3)}.pt')
     model_state_dict = torch.load(checkpoint)['model']
     torch.save(model_state_dict, os.path.join(checkpoint_dir, "best_model_weight.pt"))
+
+    print("\n\n\nLoading best weight...\n")
+
     net.load_state_dict(model_state_dict)
     net.eval().to(device)
+
+    print("\n\n\nEvaluating...\n")
 
     with torch.no_grad():
         prediction = []

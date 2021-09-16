@@ -2,6 +2,7 @@ def pretest():
 
     import pandas as pd
     from data_prep_utils import get_processed_data
+    from utils import catch_stdout, file_output
 
     samples = get_processed_data().samples
     gene_idx = tuple(map(lambda key: 'G{}'.format(key), range(1, 300 + 1)))
@@ -35,16 +36,20 @@ def pretest():
 
     df = pd.DataFrame({"tau1": tau1_col, "tau2": tau2_col, "abs(t1-t2)": ts_col}, index=gene_idx)
 
-    print("# Raw Data Tau Score  \n")
-    print("## Sort by tau1\n")
-    print(df.sort_values(by="tau1", ascending=False).to_markdown())
-    print()
-    print("## Sort by tau2\n")
-    print(df.sort_values(by="tau2", ascending=False).to_markdown())
-    print()
-    print("## Sort by abs(tau1-tau2)\n")
-    print(df.sort_values(by="abs(t1-t2)", ascending=False).to_markdown())
-    print()
+    @catch_stdout
+    def stringify():
+        print("# Raw Data Tau Score  \n")
+        print("## Sort by tau1\n")
+        print(df.sort_values(by="tau1", ascending=False).to_markdown())
+        print()
+        print("## Sort by tau2\n")
+        print(df.sort_values(by="tau2", ascending=False).to_markdown())
+        print()
+        print("## Sort by abs(tau1-tau2)\n")
+        print(df.sort_values(by="abs(t1-t2)", ascending=False).to_markdown())
+        print()
+
+    file_output(stringify())
 
 
 if __name__ == '__main__':

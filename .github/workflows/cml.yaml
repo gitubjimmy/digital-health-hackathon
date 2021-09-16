@@ -39,11 +39,12 @@ jobs:
           cml-send-comment train_whole.md
       - name: Test model
         run: |
-          python test.py >> test.md
+          python test.py
       - name: Send test results
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          cat output.txt >> test.md
           cml-send-comment test.md
   mlp-independent:
     runs-on: ubuntu-latest
@@ -65,14 +66,16 @@ jobs:
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python pretest.py >> pretest.md
+          python pretest.py
+          cat output.txt >> pretest.md
           cml-send-comment pretest.md
       - name: Trainig Example
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python pretrain.py >> stdout.md
-          cml-send-comment stdout.md
+          python pretrain.py
+          cat output.txt >> model_summary.md
+          cml-send-comment model_summary.md
           echo "# Example KFold Results  " >> kfold_example.md
           echo "## Fold 0  " >> kfold_example.md
           cml-publish output_train_fold_0.png --md >> kfold_example.md
