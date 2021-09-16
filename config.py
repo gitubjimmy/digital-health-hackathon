@@ -22,10 +22,8 @@ OUTPUT_FILE_PATH = ROOT / 'output.txt'
 CHECKPOINT_PATH = ROOT / 'checkpoint'
 
 #
-# HYPER PARAMETERS
+# HYPER PARAMETERS : convertible as json
 #
-
-ACTIVATION: str = 'leaky_relu'
 
 IN_CHANNELS = 311  # type: int
 
@@ -33,13 +31,15 @@ CHANNELS = 512  # type: int
 
 NUM_LAYERS = 5  # type: int
 
+ACTIVATION = 'leaky_relu'  # type: str
+
 DROPOUT_RATE = 0.5  # type: float
 
 BATCH_SIZE = 5  # type: int
 
 NUM_K_FOLD = 5  # type: int
 
-EPOCH_PER_K_FOLD = 50  # type: int
+EPOCH_PER_K_FOLD = 25  # type: int
 
 K_FOLD_REPEAT = 2  # type: int
 

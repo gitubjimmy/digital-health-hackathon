@@ -1,7 +1,6 @@
 def train():
 
     import os
-    import glob
     from sklearn.metrics import r2_score
     from sklearn.model_selection import KFold
     import torch
@@ -45,7 +44,7 @@ def train():
         return t
 
     kf = KFold(n_splits=num_folds, random_state=0, shuffle=True)
-    epoch_example = 50
+    epoch_example = 10
     result = {}
 
     for fold, (train_idx, val_idx) in enumerate(kf.split(dataset)):
