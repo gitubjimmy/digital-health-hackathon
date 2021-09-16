@@ -54,26 +54,6 @@ def raw_data_tau():
     return df
 
 
-def get_tau_input(num_gene, has_gene, treatment):
-
-    assert isinstance(num_gene, int) and 1 <= num_gene <= 300
-    assert has_gene in (0, 1)  # allowed bool (True, False): bool is subclass of integer
-    assert treatment in (0, 1)  # allowed bool (True, False): bool is subclass of integer
-
-    import torch
-
-    try:
-        get_tau_input.cache
-    except AttributeError:
-        from data_prep_utils import get_processed_data
-        get_tau_input.cache = get_processed_data().samples.mean(axis=0).drop('time')
-
-    df = get_tau_input.cache.copy()
-    df['Treatment'] = int(treatment)
-    df['G{}'.format(num_gene)] = int(has_gene)
-    return torch.from_numpy(df.to_numpy())
-
-
 @torch.no_grad()
 def test():
 
@@ -91,6 +71,25 @@ def test():
 
     # t1_input: treatment == 1
     # t2_input: treatment == 0
+
+    def get_tau_input(num_gene, has_gene, treatment):
+
+        assert isinstance(num_gene, int) and 1 <= num_gene <= 300
+        assert has_gene in (0, 1)  # allowed bool (True, False): bool is subclass of integer
+        assert treatment in (0, 1)  # allowed bool (True, False): bool is subclass of integer
+
+        import torch
+
+        try:
+            get_tau_input.cache
+        except AttributeError:
+            from data_prep_utils import get_processed_data
+            get_tau_input.cache = get_processed_data().samples.mean(axis=0).drop('time')
+
+        df = get_tau_input.cache.copy()
+        df['Treatment'] = int(treatment)
+        df['G{}'.format(num_gene)] = int(has_gene)
+        return torch.from_numpy(df.to_numpy())
 
     t1_pos_inputs = []
     t1_neg_inputs = []
