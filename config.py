@@ -8,7 +8,6 @@
 # IMPORT
 #
 import sys
-import types
 import pathlib
 
 #
@@ -39,9 +38,9 @@ BATCH_SIZE = 5  # type: int
 
 NUM_K_FOLD = 5  # type: int
 
-EPOCH_PER_K_FOLD = 25  # type: int
+EPOCH_PER_K_FOLD = 200  # type: int
 
-K_FOLD_REPEAT = 2  # type: int
+K_FOLD_REPEAT = 10  # type: int
 
 OPTIMIZER = 'Adam'  # type: str
 
@@ -55,7 +54,7 @@ LR_SCHEDULER = 'CosineAnnealingWarmUpRestarts'  # type: str
 
 LR_SCHEDULER_OPTIONS = {
 
-    'T_0': 20, 'T_mult': 2, 'eta_max': 1e-3, 'T_up': 5, 'gamma': 0.5
+    'T_0': 20, 'T_mult': 1.5, 'eta_max': 1e-3, 'T_up': 5, 'gamma': 0.5
 
 }  # type: dict[str, [int, float]]
 
@@ -91,7 +90,7 @@ __mutable_attributes__ = ('ACTIVATION', )
 # ==============================================================================
 # Do not change scripts below:
 #
-class FrozenConfig(types.ModuleType):
+class FrozenConfig(type(sys)):
     __doc__ = __doc__
 
     __INITIALIZED = False

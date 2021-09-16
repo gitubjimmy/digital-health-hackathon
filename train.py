@@ -44,7 +44,7 @@ def train():
         return t
 
     kf = KFold(n_splits=num_folds, random_state=0, shuffle=True)
-    epoch_example = 10
+    epoch_example = 400
     result = {}
 
     for fold, (train_idx, val_idx) in enumerate(kf.split(dataset)):
@@ -101,7 +101,7 @@ def train():
     scheduler = get_lr_scheduler_from_config(optimizer)
     loader = get_loader(dataset, train=True)
     fitter = RegressionTrainer(
-        net, criterion, optimizer, scheduler, epoch=early_stopping_epoch,
+        net, criterion, optimizer, scheduler, epoch=early_stopping_epoch + 3,
         snapshot_dir=os.path.join(checkpoint_dir, "finalize"),
         train_iter=loader, val_iter=loader,
         verbose=False, progress=False, log_interval=1
