@@ -135,6 +135,6 @@ def visualize_regression(
     plt.minorticks_on()
 
     if filename is not None:
-        plt.savefig(f"output_train_whole.png")
+        plt.savefig(filename)
     if show:
         plt.show()
