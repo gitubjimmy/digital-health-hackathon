@@ -43,7 +43,7 @@ jobs:
 
           echo "# KFold Iteration  " >> kfold_iter.md
           cml-publish output_train_kfold_iter.png --md >> kfold_iter.md
-          cml=send-output kfold_iter.md
+          cml-send-output kfold_iter.md
 
           echo "# Training Whole Data  " >> output.md
           cat output.txt >> output.md
