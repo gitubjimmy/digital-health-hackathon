@@ -22,20 +22,61 @@ jobs:
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "# Training  " >> output.md
           pip3 install -r requirements.txt
-          python train.py >> output.md
-          echo "## Fold 0  " >> output.md
-          cml-publish output_train_fold_0.png --md >> output.md
-          echo "## Fold 1  " >> output.md
-          cml-publish output_train_fold_1.png --md >> output.md
-          echo "## Fold 2  " >> output.md
-          cml-publish output_train_fold_2.png --md >> output.md
-          echo "## Fold 3  " >> output.md
-          cml-publish output_train_fold_3.png --md >> output.md
-          echo "## Fold 4  " >> output.md
-          cml-publish output_train_fold_4.png --md >> output.md
-          echo "## Best Fold  " >> output.md
+
+          python train.py >> stdout.md
+
+          cml-send-output stdout.md
+
+          echo "# Example KFold Results  " >> kfold_example.md
+          echo "## Fold 0  " >> kfold_example.md
+          cml-publish output_train_fold_0.png --md >> kfold_example.md
+          echo "## Fold 1  " >> kfold_example.md
+          cml-publish output_train_fold_1.png --md >> kfold_example.md
+          echo "## Fold 2  " >> kfold_example.md
+          cml-publish output_train_fold_2.png --md >> kfold_example.md
+          echo "## Fold 3  " >> kfold_example.md
+          cml-publish output_train_fold_3.png --md >> kfold_example.md
+          echo "## Fold 4  " >> kfold_example.md
+          cml-publish output_train_fold_4.png --md >> kfold_example.md
+          cml-send-output kfold_example.md
+
+          echo "# KFold Iteration  " >> kfold_iter.md
+          cml-publish output_train_kfold_iter.png --md >> kfold_iter.md
+          cml=send-output kfold_iter.md
+
+          echo "# Training Whole Data  " >> output.md
           cat output.txt >> output.md
           cml-publish output_train_whole.png --md >> output.md
-          cml-send-comment output.md
+          cml-publish output_train_whole.png --md >> output.md
+          cml-send-output output.md
+#      - name: Test model
+#        env:
+#          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        run: |
+#          echo "# Testing  " >> output.md
+#          python test.py >> output.md
+#      - name: Send output
+#        env:
+#          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        run: |
+#          cml-send-comment output.md
+#  get-tau-on-data:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#      - uses: actions/setup-python@v2
+#        with:
+#          python-version: '3.8'
+#      - run: |
+#          curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+#          sudo apt-get install -y nodejs
+#          sudo apt install aptitude -y
+#          sudo aptitude install npm -y
+#      - uses: iterative/setup-cml@v1
+#      - name: Train model
+#        env:
+#          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        run: |
+#          python test.py >> output.md
+#          cml-send-output output.md

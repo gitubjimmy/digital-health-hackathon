@@ -19,14 +19,13 @@ def get_loader_information(loader):
 
 class CheckpointMixin(object):
 
-    def __init__(self):
-        self._closed = True
+    _closed = True
 
     #
     # De-constructor: executed in buffer-cleaning in python exit
     #
 
-    def __del__(self) -> None:
+    def __del__(self):
         self._close()
 
     #
@@ -68,8 +67,7 @@ class CheckpointMixin(object):
 
 class MovableMixin(object):
 
-    def __init__(self):
-        self.__to_parse = (None, None, False, None)
+    __to_parse = (None, None, False, None)
 
     #
     # Device-moving Methods
@@ -111,9 +109,8 @@ class TimerLoggerMixin(object):
     save_and_load: bool
     _best_loss: float
 
-    def __init__(self):
-        self._time_start = None
-        self._time_stop = None
+    _time_start = None
+    _time_stop = None
 
     # Internal Timing Functions
 
@@ -203,11 +200,6 @@ class TimerLoggerMixin(object):
 
 
 class TrainerMixin(CheckpointMixin, MovableMixin, TimerLoggerMixin):
-
-    def __init__(self):
-        CheckpointMixin.__init__(self)
-        MovableMixin.__init__(self)
-        TimerLoggerMixin.__init__(self)
 
     @staticmethod
     def _check_criterion(criterion):

@@ -18,7 +18,8 @@ def visualize_learning(
         figsize = plt.rcParams.get('figure.figsize')
     plt.figure(figsize=figsize)
     plt.plot(range(1, len(train_result) + 1), train_result, label='Training Loss')
-    plt.plot(range(1, len(test_result) + 1), test_result, label='Test Loss')
+    if train_result is not test_result:
+        plt.plot(range(1, len(test_result) + 1), test_result, label='Test Loss')
     min_val_loss_idx = test_result.index(min(test_result))
     plt.axvline(min_val_loss_idx + 1, linestyle='--', color='r', label='Early Stopping Checkpoint')
     plt.annotate('epoch: {}\nloss : {:.4f}'.format(min_val_loss_idx + 1, test_result[min_val_loss_idx]),
@@ -30,6 +31,35 @@ def visualize_learning(
         plt.title(title)
     plt.xlabel("epochs")
     plt.ylabel("loss")
+    plt.grid(True)
+    plt.legend()
+    if filename is not None:
+        plt.savefig(filename)
+    if show:
+        plt.show()
+
+
+def visualize_early_stopping_epochs(
+        # Learning arguments
+        epochs,
+        # Plot arguments
+        title=None,
+        figsize=None,
+        # Save arguments
+        filename=None,
+        show=True,
+):
+    if figsize is None:  # Get default figure size if not set
+        figsize = plt.rcParams.get('figure.figsize')
+    cm = (np.array(range(len(epochs), 0, -1)) - 0.5) / len(epochs)
+    plt.figure(figsize=figsize)
+    plt.bar(range(1, len(epochs) + 1), epochs, color=plt.cm.rainbow(cm), label='Early Stopping Epochs')
+    plt.axhline(sum(epochs) / len(epochs), linestyle='--', color='r', label='Average Epoch')
+
+    if title is not None:
+        plt.title(title)
+    plt.xlabel("Iteration")
+    plt.ylabel("Average Epoch")
     plt.grid(True)
     plt.legend()
     if filename is not None:

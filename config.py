@@ -39,7 +39,9 @@ BATCH_SIZE = 5  # type: int
 
 NUM_K_FOLD = 5  # type: int
 
-EPOCH_PER_K_FOLD = 1000  # type: int
+EPOCH_PER_K_FOLD = 50  # type: int
+
+K_FOLD_REPEAT = 2  # type: int
 
 OPTIMIZER = 'Adam'  # type: str
 

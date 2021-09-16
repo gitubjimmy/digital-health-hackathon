@@ -128,9 +128,7 @@ class RegressionTrainer(TrainerMixin):
             timer=True,
             progress=True,
             log_interval=20,
-    ) -> None:
-
-        super().__init__()
+    ):
 
         assert isinstance(log_interval, int) and log_interval > 0, \
             "Log Interval is expected to be positive int, got %s" % log_interval
