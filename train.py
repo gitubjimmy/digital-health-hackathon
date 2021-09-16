@@ -7,7 +7,6 @@ def train():
     import torch.nn as nn
     import torch.nn.functional as f
     from torch.utils.data import SubsetRandomSampler
-    import torchinfo
 
     import config
     from models import get_model, get_optimizer_from_config, get_lr_scheduler_from_config
@@ -17,18 +16,6 @@ def train():
     from utils import file_output
 
     dataset = get_processed_data()
-
-    net = get_model()
-    summary = torchinfo.summary(net, dataset[0][0].shape, verbose=0)  # 1: print, 0: return string
-    print(f"\n# Model Summary  \n\n```\n{summary}\n```\n")  # for raw markdown
-
-    criterion = nn.MSELoss()
-    num_folds = config.NUM_K_FOLD
-
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    checkpoint_dir = 'checkpoint'
-    os.makedirs(checkpoint_dir, exist_ok=True)
 
     def initialize_trainer(fold_count, epoch_count):
         n = get_model()
@@ -43,27 +30,13 @@ def train():
         t.to(device)
         return t
 
-    kf = KFold(n_splits=num_folds, random_state=0, shuffle=True)
-    epoch_example = 400
-    result = {}
+    criterion = nn.MSELoss()
+    num_folds = config.NUM_K_FOLD
 
-    for fold, (train_idx, val_idx) in enumerate(kf.split(dataset)):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-        train_loader = get_loader(dataset, sampler=SubsetRandomSampler(train_idx))
-        val_loader = get_loader(dataset, sampler=SubsetRandomSampler(val_idx))
-
-        fitter = initialize_trainer(fold, epoch_example)
-        train_result, test_result = fitter.fit(train_loader, val_loader, split_result=True)
-        result[fold] = dict(
-            train_result=train_result, test_result=test_result,
-            best_loss=fitter.best_loss, early_stopping=test_result.index(min(test_result)) + 1
-        )
-        # Plot Learning Curve to check over-fitting
-        visualize_learning(
-            train_result, test_result,
-            title=f"Fold {fold} Learning Curve", figsize=(12, 12),
-            filename=f"output_train_fold_{fold}.png", show=False
-        )
+    checkpoint_dir = 'checkpoint'
+    os.makedirs(checkpoint_dir, exist_ok=True)
 
     early_stopping_epochs = []
     num_epochs = config.EPOCH_PER_K_FOLD

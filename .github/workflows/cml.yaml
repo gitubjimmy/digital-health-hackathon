@@ -5,7 +5,7 @@ on:
       - '*'
       - '!master'
 jobs:
-  mlp:
+  mlp-run:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -24,22 +24,7 @@ jobs:
         run: |
           pip3 install -r requirements.txt
 
-          python train.py >> stdout.md
-
-          cml-send-comment stdout.md
-
-          echo "# Example KFold Results  " >> kfold_example.md
-          echo "## Fold 0  " >> kfold_example.md
-          cml-publish output_train_fold_0.png --md >> kfold_example.md
-          echo "## Fold 1  " >> kfold_example.md
-          cml-publish output_train_fold_1.png --md >> kfold_example.md
-          echo "## Fold 2  " >> kfold_example.md
-          cml-publish output_train_fold_2.png --md >> kfold_example.md
-          echo "## Fold 3  " >> kfold_example.md
-          cml-publish output_train_fold_3.png --md >> kfold_example.md
-          echo "## Fold 4  " >> kfold_example.md
-          cml-publish output_train_fold_4.png --md >> kfold_example.md
-          cml-send-comment kfold_example.md
+          python train.py
 
           echo "# KFold Iteration  " >> kfold_iter.md
           cml-publish output_train_kfold_iter.png --md >> kfold_iter.md
@@ -56,7 +41,7 @@ jobs:
         run: |
           python test.py >> test.md
           cml-send-comment test.md
-  data:
+  mlp-independent:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -74,5 +59,23 @@ jobs:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pip3 install -r requirements.txt
-          python pretrain.py >> pretrain.md
-          cml-send-comment pretrain.md
+
+          python pretest.py >> pretest.md
+          cml-send-comment pretest.md
+
+          python pretrain.py >> stdout.md
+
+          cml-send-comment stdout.md
+
+          echo "# Example KFold Results  " >> kfold_example.md
+          echo "## Fold 0  " >> kfold_example.md
+          cml-publish output_train_fold_0.png --md >> kfold_example.md
+          echo "## Fold 1  " >> kfold_example.md
+          cml-publish output_train_fold_1.png --md >> kfold_example.md
+          echo "## Fold 2  " >> kfold_example.md
+          cml-publish output_train_fold_2.png --md >> kfold_example.md
+          echo "## Fold 3  " >> kfold_example.md
+          cml-publish output_train_fold_3.png --md >> kfold_example.md
+          echo "## Fold 4  " >> kfold_example.md
+          cml-publish output_train_fold_4.png --md >> kfold_example.md
+          cml-send-comment kfold_example.md

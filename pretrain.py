@@ -1,51 +1,62 @@
 def pretrain():
 
-    import pandas as pd
-    from data_prep_utils import get_processed_data
+    import os
+    from sklearn.model_selection import KFold
+    import torch
+    import torch.nn as nn
+    from torch.utils.data import SubsetRandomSampler
+    import torchinfo
 
-    samples = get_processed_data().samples
-    gene_idx = tuple(map(lambda key: 'G{}'.format(key), range(1, 300 + 1)))
+    import config
+    from models import get_model, get_optimizer_from_config, get_lr_scheduler_from_config
+    from data_prep_utils import get_processed_data, get_loader
+    from train_utils import RegressionTrainer, visualize_learning
 
-    tau1_col = []
-    tau2_col = []
-    ts_col = []
+    dataset = get_processed_data()
 
-    for gene in gene_idx:
+    net = get_model()
+    summary = torchinfo.summary(net, dataset[0][0].shape, verbose=0)  # 1: print, 0: return string
+    print(f"\n# Model Summary  \n\n```\n{summary}\n```\n")  # for raw markdown
 
-        df = samples[[gene, 'Treatment', 'time']]
-        unique_df = df[[gene, 'Treatment']].drop_duplicates()
+    criterion = nn.MSELoss()
+    num_folds = config.NUM_K_FOLD
 
-        if len(unique_df[unique_df.Treatment == 1]) == 2:  # tau1
-            looking = df[df.Treatment == 1]
-            tau1 = abs(looking[looking[gene] == 1].time.mean() - looking[looking[gene] == 0].time.mean())
-        else:
-            tau1 = float('nan')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-        if len(unique_df[unique_df.Treatment == 0]) == 2:  # tau1
-            looking = df[df.Treatment == 0]
-            tau2 = abs(looking[looking[gene] == 1].time.mean() - looking[looking[gene] == 0].time.mean())
-        else:
-            tau2 = float('nan')
+    checkpoint_dir = 'checkpoint'
+    os.makedirs(checkpoint_dir, exist_ok=True)
 
-        tau_score = abs(tau1 - tau2)
+    def initialize_trainer(fold_count, epoch_count):
+        n = get_model()
+        o = get_optimizer_from_config(n)
+        s = get_lr_scheduler_from_config(o)
+        t = RegressionTrainer(
+            n, criterion, o, s, epoch=epoch_count,
+            snapshot_dir=os.path.join(checkpoint_dir, f"fold_{fold_count}"),
+            # train_iter=train_loader, val_iter=val_loader,
+            verbose=False, progress=False, log_interval=1
+        )
+        t.to(device)
+        return t
 
-        tau1_col.append(tau1)
-        tau2_col.append(tau2)
-        ts_col.append(tau_score)
+    kf = KFold(n_splits=num_folds, random_state=0, shuffle=True)
+    epoch_example = 1000
+    result = {}
 
-    df = pd.DataFrame({"tau1": tau1_col, "tau2": tau2_col, "abs(t1-t2)": ts_col}, index=gene_idx)
+    for fold, (train_idx, val_idx) in enumerate(kf.split(dataset)):
 
-    print("# Raw Data Tau Score  \n")
-    print("## Sort by tau1\n")
-    print(df.sort_values(by="tau1", ascending=False).to_markdown())
-    print()
-    print("## Sort by tau2\n")
-    print(df.sort_values(by="tau2", ascending=False).to_markdown())
-    print()
-    print("## Sort by abs(tau1-tau2)\n")
-    print(df.sort_values(by="abs(t1-t2)", ascending=False).to_markdown())
-    print()
+        train_loader = get_loader(dataset, sampler=SubsetRandomSampler(train_idx))
+        val_loader = get_loader(dataset, sampler=SubsetRandomSampler(val_idx))
 
-
-if __name__ == '__main__':
-    pretrain()
+        fitter = initialize_trainer(fold, epoch_example)
+        train_result, test_result = fitter.fit(train_loader, val_loader, split_result=True)
+        result[fold] = dict(
+            train_result=train_result, test_result=test_result,
+            best_loss=fitter.best_loss, early_stopping=test_result.index(min(test_result)) + 1
+        )
+        # Plot Learning Curve to check over-fitting
+        visualize_learning(
+            train_result, test_result,
+            title=f"Fold {fold} Learning Curve", figsize=(12, 12),
+            filename=f"output_train_fold_{fold}.png", show=False
+        )

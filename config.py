@@ -40,7 +40,7 @@ NUM_K_FOLD = 5  # type: int
 
 EPOCH_PER_K_FOLD = 200  # type: int
 
-K_FOLD_REPEAT = 10  # type: int
+K_FOLD_REPEAT = 15  # type: int
 
 OPTIMIZER = 'Adam'  # type: str
 
