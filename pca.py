@@ -8,7 +8,6 @@ def set_max_survival_time(survival_time_event, max_survival_time):
     for idx in range(len(survival_time_event)):
         if survival_time_event.loc[idx, "event"] == 0:
             survival_time_event.at[idx, "time"] = max_survival_time
-    set_max_survival_time.previous_max_survival_time = max_survival_time
 
 
 def find_effective_genes(survival_time_event, generic_alterations, treatment):
@@ -39,36 +38,47 @@ def find_effective_genes(survival_time_event, generic_alterations, treatment):
 
 
 def print_effective_genes(gene_effectiveness):
-    print('gene_effectiveness')
+    print('\ngene_effectiveness')
     for effective_gene in gene_effectiveness:
         print(effective_gene)
 
 
 def main():
+    # get data
     clinical_variables, generic_alterations, survival_time_event, treatment = get_data()
-    n_data = treatment.shape[0]
-    set_max_survival_time(survival_time_event, 120)
-    hist = survival_time_event.hist(column="time", range=(0, 200), bins=10)
-    fig = hist[0][0].get_figure()
-    fig.savefig("output.png")
+    n_data = treatment.shape[0]  # row size
+    n_genes = generic_alterations.shape[1] - 1  # gene count
+    set_max_survival_time(survival_time_event, 120)  # set survival time of alive people
 
+    # get histogram of survival_time
+    hist = survival_time_event.hist(column="time", range=(0, 200), bins=10)[0][0]
+    hist.set_xlabel("survived time")
+    hist.set_ylabel("# of people")
+    fig = hist.get_figure()
+    fig.savefig("outputs/survival_time_hist.png")
+
+    # group people by their survived time & treatment
     sorted_survival_time_event = survival_time_event.sort_values(by="time")
-    divisor = 1
+    n_groups = 1
     group_label = [0 for _ in range(n_data)]
-    for k in range(divisor):
-        start = int(n_data / divisor * k)
-        end = int(n_data / divisor * (k + 1))
+    for k in range(n_groups):
+        start = int(n_data / n_groups * k)
+        end = int(n_data / n_groups * (k + 1))
         for idx in range(start, end):
             had_treatment = treatment.loc[idx, "Treatment"]
-            group_label[sorted_survival_time_event.iloc[idx, 0]] = k + 1 if had_treatment else -(k + 1)
+            group_label[sorted_survival_time_event.iloc[idx, 0]] = f'{k}_treatment' if had_treatment else k
+            # higher k <=> survived longer
 
-    plt.clf()
-    plt.hist(group_label, range=(-divisor, divisor + 1), bins=2 * divisor + 1)
-    plt.savefig("output2.png")
+    # visualize
+    group_label_pd = pd.Series(group_label, name='frequency')
+    group_label_pd = group_label_pd.value_counts()
+    with open('outputs/group_label_count.md', 'w') as group_label_count_md:
+        group_label_count_md.write("## group frequency table  \n")
+        group_label_count_md.write(group_label_pd.to_frame().to_markdown())
 
     # gene relativity graph
-    relativity_graph = [[0 for _ in range(300)] for _ in range(300)]
-    relativity_graph_xor = [[0 for _ in range(300)] for _ in range(300)]
+    relativity_graph = [[0 for _ in range(n_genes)] for _ in range(n_genes)]
+    relativity_graph_xor = [[0 for _ in range(n_genes)] for _ in range(n_genes)]
     mutation_per_person = []
     for data_idx in range(n_data):
         mutated_genes = generic_alterations.loc[data_idx, generic_alterations.loc[data_idx] == 1].index
@@ -89,30 +99,37 @@ def main():
             for end_idx in range(len(normal_gene_indices)):
                 end_gene_idx = normal_gene_indices[end_idx] - 1
                 relativity_graph_xor[start_gene_idx][end_gene_idx] += 1
+
     to_csv = '\n'.join([','.join([str(cell) for cell in row]) for row in relativity_graph])
     to_csv_xor = '\n'.join([','.join([str(cell) for cell in row]) for row in relativity_graph_xor])
     with open('./data/relativity_graph.csv', 'w') as output_csv:
         output_csv.write(to_csv)
     with open('./data/relativity_graph_xor.csv', 'w') as output_csv:
         output_csv.write(to_csv_xor)
+
+    # extra stats from relativity graph
     print('average_mutation_per_person', sum(mutation_per_person) / len(mutation_per_person))
     flat_relativity_graph_xor = [cell_value for row in relativity_graph_xor for cell_value in row if cell_value > 0]
     print('min value in relativity_graph_xor', min(flat_relativity_graph_xor))
 
-    # effective genes
-    rank_limit = 50
-
-    gene_effectiveness_max120 = find_effective_genes(survival_time_event, generic_alterations, treatment)[:rank_limit]
-    print_effective_genes(gene_effectiveness_max120)
+    # find effective genes
+    n_desired_genes = 50
+    gene_effectiveness_max120 = \
+        find_effective_genes(survival_time_event, generic_alterations, treatment)[:n_desired_genes]
+    print_effective_genes(gene_effectiveness_max120[:10])
+    print('...\n')
 
     set_max_survival_time(survival_time_event, 999)
-    gene_effectiveness_max999 = find_effective_genes(survival_time_event, generic_alterations, treatment)[:rank_limit]
-    print_effective_genes(gene_effectiveness_max999)
+    gene_effectiveness_max999 = \
+        find_effective_genes(survival_time_event, generic_alterations, treatment)[:n_desired_genes]
+    print_effective_genes(gene_effectiveness_max999[:10])
+    print('...')
 
     effective_genes_max120 = [_tuple[0] for _tuple in gene_effectiveness_max120]
     effective_genes_max999 = [_tuple[0] for _tuple in gene_effectiveness_max999]
     effective_genes_intersection = list(set(effective_genes_max120) & set(effective_genes_max999))
-    print('effective_genes_intersection', effective_genes_intersection)
+    print('\neffective_genes_intersection')
+    print(', '.join(effective_genes_intersection[:10] + ['...']))
     print('count', len(effective_genes_intersection))
 
     # effective_genes = [gene_effectiveness[idx][0] for idx in range(rank_limit)]
@@ -120,7 +137,9 @@ def main():
     # effective_genes = [f'G{gene_number}' for gene_number in effective_genes]
     effective_genes = effective_genes_intersection
 
-    # PCA
+    #######
+    # PCA #
+    #######
 
     # remove alive data
     generic_alterations = generic_alterations.loc[survival_time_event["event"] == 1]
@@ -148,12 +167,12 @@ def main():
     plt.clf()
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(1, 1, 1)
-    groups = [i for i in range(-divisor, divisor + 1) if i != 0]
+    groups = set(group_label)
     for group in groups:
         indices_to_keep = principal_df["group"] == group
         ax.scatter(principal_df.loc[indices_to_keep, 'pc1'], principal_df.loc[indices_to_keep, 'pc2'], s=20)
     ax.legend(groups)
-    plt.savefig("output3.png")
+    plt.savefig("outputs/pca.png")
 
 
 if __name__ == '__main__':
