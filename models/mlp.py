@@ -89,15 +89,4 @@ class MLP(nn.Module):
         return self.last_layer(x)
 
 
-def get_model(**override):
-    import config
-    options = dict(
-        in_channels=config.IN_CHANNELS,
-        out_channels=1,
-        channels=config.CHANNELS,
-        num_layers=config.NUM_LAYERS,
-        dropout_rate=config.DROPOUT_RATE,
-        activation=config.ACTIVATION
-    )
-    options.update(override)
-    return MLP(**options)
+__all__ = ['MLP']

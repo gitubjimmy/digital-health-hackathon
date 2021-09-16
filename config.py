@@ -39,7 +39,19 @@ BATCH_SIZE: int = 5
 
 NUM_K_FOLD = 5
 
-EPOCH_PER_K_FOLD: int = 1000
+EPOCH_PER_K_FOLD: int = 200
+
+OPTIMIZER: str = 'Adam'
+
+OPTIMIZER_OPTIONS: dict = {'lr': 1e-3}
+
+LR_SCHEDULER: str = 'CosineAnnealingWarmRestarts'
+
+LR_SCHEDULER_OPTIONS: dict = {'T_0': 10, 'T_mult': 2, 'eta_min': 1e-5, 'last_epoch': -1}
+
+# LR_SCHEDULER: str =  'StepLR'
+
+# LR_SCHEDULER_OPTIONS: dict = {'step_size': 10, 'gamma': 1e-1 ** 0.5}
 
 #
 # ==============================================================================

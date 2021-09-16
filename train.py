@@ -10,7 +10,7 @@ def train():
     import torchinfo
 
     import config
-    from models import get_model
+    from models import get_model, get_optimizer_from_config, get_lr_scheduler_from_config
     from data_prep_utils import get_processed_data, get_loader
     from train_utils import RegressionTrainer, visualize_regression, visualize_learning
     from utils import file_output
@@ -22,14 +22,6 @@ def train():
     print("\nModel Summary:\n\n```\n{}\n```\n".format(summary))  # for raw markdown
 
     criterion = torch.nn.MSELoss()
-    optimizer_class = torch.optim.Adam
-    optimizer_options = dict(lr=1e-1)
-    scheduler_class = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts
-    scheduler_options = dict(T_0=10, T_mult=2, eta_min=1e-4, last_epoch=-1)
-    # optimizer_class = torch.optim.Adam
-    # optimizer_options = dict(lr=1e-3)
-    # scheduler_class = torch.optim.lr_scheduler.StepLR
-    # scheduler_options = dict(step_size=10, gamma=1e-1 ** 0.5)
     num_folds = config.NUM_K_FOLD
     num_epochs = config.EPOCH_PER_K_FOLD
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -39,8 +31,8 @@ def train():
 
     def initialize_trainer(fold_count):
         n = get_model()
-        o = optimizer_class(n.parameters(), **optimizer_options)
-        s = scheduler_class(o, **scheduler_options)
+        o = get_optimizer_from_config(n)
+        s = get_lr_scheduler_from_config(o)
         t = RegressionTrainer(
             n, criterion, o, s, epoch=num_epochs,
             snapshot_dir=os.path.join(checkpoint_dir, f"fold_{fold_count}"),
@@ -120,6 +112,8 @@ def train():
         xlabel='Value', ylabel='Prediction', title='Year of Survival Regression',
         filename=f"output_train_whole.png", show=False
     )
+    # todo
+    #  (KFold 5개 --> early stopping 5개의 평균) --> random state 여러개로 평균  (평균 epoch 분포)
 
 
 if __name__ == '__main__':
