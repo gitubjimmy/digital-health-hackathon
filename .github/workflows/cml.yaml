@@ -48,7 +48,7 @@ jobs:
           echo "# Training Whole Data  " >> output.md
           cat output.txt >> output.md
           cml-publish output_train_whole.png --md >> output.md
-          cml-publish output_train_whole.png --md >> output.md
+          cml-publish output_train_regression.png --md >> output.md
           cml-send-output output.md
 #      - name: Test model
 #        env:
