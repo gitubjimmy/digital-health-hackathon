@@ -26,7 +26,7 @@ jobs:
 
           python train.py >> stdout.md
 
-          cml-send-output stdout.md
+          cml-send-comment stdout.md
 
           echo "# Example KFold Results  " >> kfold_example.md
           echo "## Fold 0  " >> kfold_example.md
@@ -39,17 +39,17 @@ jobs:
           cml-publish output_train_fold_3.png --md >> kfold_example.md
           echo "## Fold 4  " >> kfold_example.md
           cml-publish output_train_fold_4.png --md >> kfold_example.md
-          cml-send-output kfold_example.md
+          cml-send-comment kfold_example.md
 
           echo "# KFold Iteration  " >> kfold_iter.md
           cml-publish output_train_kfold_iter.png --md >> kfold_iter.md
-          cml-send-output kfold_iter.md
+          cml-send-comment kfold_iter.md
 
           echo "# Training Whole Data  " >> output.md
           cat output.txt >> output.md
           cml-publish output_train_whole.png --md >> output.md
           cml-publish output_train_regression.png --md >> output.md
-          cml-send-output output.md
+          cml-send-comment output.md
 #      - name: Test model
 #        env:
 #          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
