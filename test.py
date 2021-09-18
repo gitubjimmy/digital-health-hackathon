@@ -74,9 +74,7 @@ def test():
 
     print("Writing output...")
 
-    @catch_stdout
-    def stringify():
-
+    with catch_stdout() as catcher:
         print("# Tau Score from MLP  \n")
         print()
         print("## Sort by tau1\n")
@@ -89,7 +87,7 @@ def test():
         print(df.sort_values(by="abs(t1-t2)", ascending=False).to_markdown())
         print()
 
-    file_output(stringify())
+    file_output(str(catcher))
 
     print("Done!")
 

@@ -63,16 +63,51 @@ def without_stderr(func):  # decorator
     return wrapper
 
 
-def catch_stdout(func):  # decorator
-    """Decorator that makes function return stdout output string, instead of original function result."""
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs) -> str:
-        original_stdout = sys.stdout
+class StdoutCatcher(object):  # context manager: available as str with subclassing
+
+    def __new__(cls, func=None):
+        if func is not None:  # as decorator
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                with cls() as catcher:
+                    func(*args, **kwargs)
+                return catcher.getvalue()
+            return wrapper  # return not new object but decorator
+        result = object.__new__(cls)
+        result.__wrapper = io.StringIO()
+        result.__prior = None
+        return result
+    __new__.__text_signature__ = '($cls, func=None, /)'
+
+    def __enter__(self):
+        self.__prior = sys.stdout
+        sys.stdout = self.__wrapper
+        return self
+
+    open = __enter__
+
+    def __exit__(self, exc_type=None, exc_val=None, exc_tb=None):
+        if any([exc_type, exc_val, exc_tb]):
+            sys.stdout = sys.__stdout__
         try:
-            stdout_catcher = io.StringIO()
-            sys.stdout = stdout_catcher
-            func(*args, **kwargs)
-            return stdout_catcher.getvalue()
-        finally:
-            sys.stdout = original_stdout
-    return wrapper
+            sys.stdout = self.__prior
+            self.__prior = None
+        except BaseException:
+            sys.stdout = sys.__stdout__
+            raise
+
+    close = __exit__
+
+    def __str__(self):
+        return self.__wrapper.getvalue()
+
+    getvalue = __str__
+
+    def __repr__(self):
+        value = self.__str__()
+        if not value:
+            return "<%s object at %s (empty)>" % (type(self).__name__, hex(id(self)))
+        return value
+
+
+catch_stdout = StdoutCatcher  # alias

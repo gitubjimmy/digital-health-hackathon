@@ -38,7 +38,7 @@ BATCH_SIZE = 5  # type: int
 
 NUM_K_FOLD = 5  # type: int
 
-EPOCH_PER_K_FOLD = 200  # type: int
+EPOCH_PER_K_FOLD = 100  # type: int
 
 K_FOLD_REPEAT = 15  # type: int
 
