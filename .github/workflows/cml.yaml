@@ -18,7 +18,6 @@ jobs:
           pip3 install -r requirements.txt
           mkdir outputs
           python pca.py >> stdout.md
-
           echo "## survival time histogram  " >> survival_time_hist.md
           cml-publish outputs/survival_time_hist.png --md >> survival_time_hist.md
           cml-send-comment survival_time_hist.md
