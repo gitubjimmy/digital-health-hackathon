@@ -9,7 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: echo Dummy Job
+      - run: |
+        echo Dummy Job
+
 #  mlp-run:
 #    runs-on: ubuntu-latest
 #    steps:
