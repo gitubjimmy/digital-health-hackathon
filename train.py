@@ -38,44 +38,46 @@ def train():
     checkpoint_dir = 'checkpoint'
     os.makedirs(checkpoint_dir, exist_ok=True)
 
-    print("Calculating early stopping epoch from fold repeating...\n")
+    # print("Calculating early stopping epoch from fold repeating...\n")
+    #
+    # early_stopping_epochs = []
+    # num_epochs = config.EPOCH_PER_K_FOLD
+    # repeat = config.K_FOLD_REPEAT
+    #
+    # for i in range(1, repeat + 1):
+    #
+    #     print("\n\n{Repeat %s}\n\n" % i)
+    #
+    #     kf = KFold(n_splits=num_folds, random_state=i, shuffle=True)
+    #     early_stopping = 0
+    #
+    #     for fold, (train_idx, val_idx) in enumerate(kf.split(dataset)):
+    #
+    #         print("<Fold %s>\n" % fold)
+    #
+    #         train_loader = get_loader(dataset, sampler=SubsetRandomSampler(train_idx))
+    #         val_loader = get_loader(dataset, sampler=SubsetRandomSampler(val_idx))
+    #
+    #         fitter = initialize_trainer(fold, num_epochs)
+    #         _, test_result = fitter.fit(train_loader, val_loader, split_result=True)
+    #         early_stopping += test_result.index(min(test_result)) + 1
+    #
+    #     print()
+    #
+    #     early_stopping /= num_folds
+    #     early_stopping_epochs.append(early_stopping)
+    #
+    # visualize_early_stopping_epochs(
+    #     early_stopping_epochs,
+    #     title="KFold Average Early Stopping Epochs",
+    #     figsize=(15, 12),
+    #     filename="output_train_kfold_iter.png",
+    #     show=False
+    # )
+    # early_stopping_epoch = (sum(early_stopping_epochs) // len(early_stopping_epochs)) + 1
+    # file_output(f"KFold {repeat} repeating - average early stopping epoch: {early_stopping_epoch}")
 
-    early_stopping_epochs = []
-    num_epochs = config.EPOCH_PER_K_FOLD
-    repeat = config.K_FOLD_REPEAT
-
-    for i in range(1, repeat + 1):
-
-        print("\n\n{Repeat %s}\n\n" % i)
-
-        kf = KFold(n_splits=num_folds, random_state=i, shuffle=True)
-        early_stopping = 0
-
-        for fold, (train_idx, val_idx) in enumerate(kf.split(dataset)):
-
-            print("<Fold %s>\n" % fold)
-
-            train_loader = get_loader(dataset, sampler=SubsetRandomSampler(train_idx))
-            val_loader = get_loader(dataset, sampler=SubsetRandomSampler(val_idx))
-
-            fitter = initialize_trainer(fold, num_epochs)
-            _, test_result = fitter.fit(train_loader, val_loader, split_result=True)
-            early_stopping += test_result.index(min(test_result)) + 1
-
-        print()
-
-        early_stopping /= num_folds
-        early_stopping_epochs.append(early_stopping)
-
-    visualize_early_stopping_epochs(
-        early_stopping_epochs,
-        title="KFold Average Early Stopping Epochs",
-        figsize=(15, 12),
-        filename="output_train_kfold_iter.png",
-        show=False
-    )
-    early_stopping_epoch = (sum(early_stopping_epochs) // len(early_stopping_epochs)) + 1
-    file_output(f"KFold {repeat} repeating - average early stopping epoch: {early_stopping_epoch}")
+    early_stopping_epoch = 50
 
     print("\n\n\nActual training...\n")
 
@@ -84,7 +86,7 @@ def train():
     scheduler = get_lr_scheduler_from_config(optimizer)
     loader = get_loader(dataset, train=True)
     fitter = RegressionTrainer(
-        net, criterion, optimizer, scheduler, epoch=early_stopping_epoch + 3,
+        net, criterion, optimizer, scheduler, epoch=early_stopping_epoch,
         snapshot_dir=os.path.join(checkpoint_dir, "finalize"),
         train_iter=loader, val_iter=loader,
         verbose=True, progress=False, log_interval=1

@@ -1,8 +1,10 @@
 import io
+import os
 import sys
 
 import contextlib
 import functools
+import threading
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -31,27 +33,10 @@ file_output.count = 0
 
 @contextlib.contextmanager
 def kill_stderr():  # context manager
-    """
-    Kills stderr in context.
-
-    Example usage:
-
-    >>> from torchvision.datasets import CIFAR10
-    >>> with kill_stderr():
-    ...     CIFAR10(root='data', download=True)
-    ...
-    Downloading https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz to data/cifar-10-python.tar.gz
-
-    """
-    original_stderr = sys.stderr
-    try:
-        # make dummy stderr
-        killed_stderr = io.StringIO()
-        # swap to dummy stderr
-        sys.stderr = killed_stderr
-        yield killed_stderr
-    finally:  # safe-wrap with exception handler
-        sys.stderr = original_stderr  # NOTE: __stderr__ - original stderr
+    devnull = open(os.devnull, mode='w')
+    with contextlib.redirect_stderr(devnull):
+        yield
+    devnull.close()
 
 
 def without_stderr(func):  # decorator
@@ -63,40 +48,84 @@ def without_stderr(func):  # decorator
     return wrapper
 
 
-class StdoutCatcher(object):  # context manager: available as str with subclassing
+class StdoutCatcher(
+    contextlib.ContextDecorator,
+    contextlib.AbstractContextManager
+):  # context manager: available as str with subclassing
+    """
+    Context manager that catches stdout in context, and can be converted to string
+
+    example usage:
+
+        As context manager: simply used as context manager
+            >>> output = StdoutCatcher()
+            >>> with output:
+            ...     print("Sample outputs")
+            ...
+            >>> str(output)
+            "Sample outputs\n"
+
+        As direct decorator: make function return stdout output string, instead of printing it.
+            >>> @StdoutCatcher
+            ... def simple_function():
+            ...     print("Sample outputs")
+            ...     return "Truncated return value"
+            ...
+            >>> simple_function()
+            "Sample outputs\n"
+
+        As initialized decorator: make function continuously stack stdout output to object, instead of printing it.
+            >>> output = StdoutCatcher()
+            >>> @output
+            ... def simple_function():
+            ...     print("Sample outputs")
+            ...     return "Return value"
+            ...
+            >>> simple_function()
+            "Return value"
+            >>> simple_function()
+            "Return value"
+            >>> str(output)
+            "Sample outputs\nSample outputs\n"
+
+    """
+
+    __stream = "stdout"
 
     def __new__(cls, func=None):
-        if func is not None:  # as decorator
+        if func is not None:  # as direct decorator
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
-                with cls() as catcher:
+                with cls() as obj:
                     func(*args, **kwargs)
-                return catcher.getvalue()
+                return str(obj)
             return wrapper  # return not new object but decorator
-        result = object.__new__(cls)
-        result.__wrapper = io.StringIO()
-        result.__prior = None
-        return result
+        self = object.__new__(cls)
+        self.__lock = threading.RLock()
+        self.__target = None
+        self.__wrapper = io.StringIO()
+        return self
+
     __new__.__text_signature__ = '($cls, func=None, /)'
 
     def __enter__(self):
-        self.__prior = sys.stdout
-        sys.stdout = self.__wrapper
+        if self.__target is None:
+            with self.__lock:
+                if self.__target is None:
+                    # Double-checked
+                    self.__target = getattr(sys, self.__stream)
+                    setattr(sys, self.__stream, self.__wrapper)
         return self
 
     open = __enter__
 
-    def __exit__(self, exc_type=None, exc_val=None, exc_tb=None):
-        if any([exc_type, exc_val, exc_tb]):
-            sys.stdout = sys.__stdout__
-            return
-        try:
-            sys.stdout = self.__prior
-            self.__prior = None
-            return
-        except BaseException:
-            sys.stdout = sys.__stdout__
-            raise
+    def __exit__(self, exc_type=None, exc_inst=None, exc_tb=None):
+        if self.__target is not None:
+            with self.__lock:
+                if self.__target is not None:
+                    setattr(sys, self.__stream, self.__target)
+                    self.__target = None
+        return
 
     close = __exit__
 
@@ -110,6 +139,11 @@ class StdoutCatcher(object):  # context manager: available as str with subclassi
         if not value:
             return "<%s object at %s (empty)>" % (type(self).__name__, hex(id(self)))
         return value
+
+    def __call__(self, func):
+        wrapper = super().__call__(func)
+        wrapper.__output__ = self.__wrapper
+        return wrapper
 
 
 catch_stdout = StdoutCatcher  # alias
