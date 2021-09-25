@@ -1,15 +1,13 @@
-import torch
-import torchvision.transforms as transforms
-from torch.utils.data import DataLoader
-from torchvision.datasets import CIFAR10
+import pandas as pd
 
 from utils import kill_stderr
 
 
-def get_data_loaders():
-    transform = transforms.Compose(
-        [transforms.ToTensor(),
-         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+def get_data():
+    clinical_variables = pd.read_csv('./data/Clinical_Variables.csv')
+    generic_alterations = pd.read_csv('./data/Genetic_alterations.csv')
+    survival_time_event = pd.read_csv('./data/Survival_time_event.csv')
+    treatment = pd.read_csv('./data/Treatment.csv')
 
     batch_size = 4
 
