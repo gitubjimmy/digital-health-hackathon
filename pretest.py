@@ -36,7 +36,7 @@ def pretest():
 
     df = pd.DataFrame({"tau1": tau1_col, "tau2": tau2_col, "abs(t1-t2)": ts_col}, index=gene_idx)
 
-    with catch_stdout() as catcher:
+    with catch_stdout() as output:
         print("# Raw Data Tau Score  \n")
         print("## Sort by tau1\n")
         print(df.sort_values(by="tau1", ascending=False).to_markdown())
@@ -48,7 +48,7 @@ def pretest():
         print(df.sort_values(by="abs(t1-t2)", ascending=False).to_markdown())
         print()
 
-    file_output(str(catcher))
+    file_output(str(output))
 
 
 if __name__ == '__main__':

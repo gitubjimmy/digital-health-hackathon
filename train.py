@@ -25,7 +25,7 @@ def train():
             n, criterion, o, s, epoch=epoch_count,
             snapshot_dir=os.path.join(checkpoint_dir, f"fold_{fold_count}"),
             # train_iter=train_loader, val_iter=val_loader,
-            verbose=True, progress=False, log_interval=1
+            verbose=False, progress=False, log_interval=1
         )
         t.to(device)
         return t
@@ -62,7 +62,7 @@ def train():
             _, test_result = fitter.fit(train_loader, val_loader, split_result=True)
             early_stopping += test_result.index(min(test_result)) + 1
 
-            print()
+        print()
 
         early_stopping /= num_folds
         early_stopping_epochs.append(early_stopping)

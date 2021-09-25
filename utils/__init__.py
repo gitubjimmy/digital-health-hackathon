@@ -89,9 +89,11 @@ class StdoutCatcher(object):  # context manager: available as str with subclassi
     def __exit__(self, exc_type=None, exc_val=None, exc_tb=None):
         if any([exc_type, exc_val, exc_tb]):
             sys.stdout = sys.__stdout__
+            return
         try:
             sys.stdout = self.__prior
             self.__prior = None
+            return
         except BaseException:
             sys.stdout = sys.__stdout__
             raise

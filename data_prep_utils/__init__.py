@@ -1,9 +1,9 @@
 from .dataset import *
-from .data_loader import *
+from .loader import *
 from .preprocessor import *
 
 from . import dataset
-from . import data_loader
+from . import loader
 from . import preprocessor
 
 
