@@ -16,16 +16,5 @@ jobs:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pip3 install -r requirements.txt
-          mkdir outputs
-          python pca.py >> stdout.md
-          echo "## survival time histogram  " >> survival_time_hist.md
-          cml-publish outputs/survival_time_hist.png --md >> survival_time_hist.md
-          cml-send-comment survival_time_hist.md
-
-          cml-send-comment outputs/group_label_count.md
-
+          python bayesian.py >> stdout.md
           cml-send-comment stdout.md
-
-          echo "## PCA  " >> pca.md
-          cml-publish outputs/pca.png --md >> pca.md
-          cml-send-comment pca.md
