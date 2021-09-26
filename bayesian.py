@@ -3,7 +3,6 @@ from sklearn.decomposition import PCA
 from data_loader import get_data
 from utils import write_to_csv
 import numpy as np
-import pandas as pd
 
 
 def find_rel_nodes(node_idx, group):
