@@ -2,8 +2,7 @@ name: model-training
 on:
   push:
     branches:
-      - '*'
-      - '!master'
+      - 'master'
 jobs:
   mlp-run:
     runs-on: ubuntu-latest
