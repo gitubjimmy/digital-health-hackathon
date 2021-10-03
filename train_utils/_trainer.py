@@ -1,3 +1,4 @@
+"""src: https://github.com/kdha0727/easyrun-pytorch/blob/main/easyrun.py"""
 # Separate basic class of trainer, for readability.
 
 import contextlib

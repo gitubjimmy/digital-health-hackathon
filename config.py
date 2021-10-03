@@ -50,7 +50,7 @@ OPTIMIZER_OPTIONS = {
 
 }  # type: dict[str, float]
 
-LR_SCHEDULER = 'CosineAnnealingWarmUpRestarts'  # type: str
+LR_SCHEDULER = ''  # type: str
 
 LR_SCHEDULER_OPTIONS = {
 
