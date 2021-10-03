@@ -77,75 +77,76 @@ def train():
     # early_stopping_epoch = (sum(early_stopping_epochs) // len(early_stopping_epochs)) + 1
     # file_output(f"KFold {repeat} repeating - average early stopping epoch: {early_stopping_epoch}")
 
-    early_stopping_epoch = 50
+    early_stopping_epoch = 100
 
     print("\n\n\nActual training...\n")
 
-    net = get_model()
-    optimizer = get_optimizer_from_config(net)
-    scheduler = get_lr_scheduler_from_config(optimizer)
-    loader = get_loader(dataset, train=True)
-    fitter = RegressionTrainer(
-        net, criterion, optimizer, scheduler, epoch=early_stopping_epoch,
-        snapshot_dir=os.path.join(checkpoint_dir, "finalize"),
-        train_iter=loader, val_iter=loader,
-        verbose=True, progress=False, log_interval=1
-    )
-    fitter.to(device)
-    _, train_result = fitter.fit(split_result=True)
-    best_epoch = train_result.index(min(train_result)) + 1
+    for num_layers in range(2, 9):
+        net = get_model(num_layers=num_layers)
+        optimizer = get_optimizer_from_config(net)
+        scheduler = get_lr_scheduler_from_config(optimizer)
+        loader = get_loader(dataset, train=True)
+        fitter = RegressionTrainer(
+            net, criterion, optimizer, scheduler, epoch=early_stopping_epoch,
+            snapshot_dir=os.path.join(checkpoint_dir, "finalize"),
+            train_iter=loader, val_iter=loader,
+            verbose=True, progress=False, log_interval=1
+        )
+        fitter.to(device)
+        _, train_result = fitter.fit(split_result=True)
+        best_epoch = train_result.index(min(train_result)) + 1
 
-    visualize_learning(
-        train_result, train_result,
-        title=f"Whole Data Learning Curve", figsize=(12, 12),
-        filename=f"output_train_whole.png", show=False
-    )
+        visualize_learning(
+            train_result, train_result,
+            title=f"Whole Data Learning Curve", figsize=(12, 12),
+            filename=f"output_train_whole_{num_layers}.png", show=False
+        )
 
-    print("\n\n\nSaving model...\n")
+        print("\n\n\nSaving model...\n")
 
-    checkpoint = os.path.join(checkpoint_dir, "finalize", f'best_checkpoint_epoch_{str(best_epoch).zfill(3)}.pt')
-    model_state_dict = torch.load(checkpoint)['model']
-    torch.save(model_state_dict, os.path.join(checkpoint_dir, "best_model_weight.pt"))
-
-    print("\n\n\nLoading best weight...\n")
-
-    net.load_state_dict(model_state_dict)
-    net.eval().to(device)
-
-    print("\n\n\nEvaluating...\n")
-
-    with torch.no_grad():
-        prediction = []
-        label = []
-
-        for inputs, labels in get_loader(dataset, train=False):
-            inputs, labels = inputs.to(device), labels.to(device)
-            outputs = net(inputs)
-            prediction.append(outputs)
-            label.append(labels)
-
-        label = torch.cat(label, dim=0).view(-1, 1)
-        prediction = torch.cat(prediction, dim=0).view(-1, 1)
-
-        sc_val = dataset.y_proc.scaler_
-        label = sc_val.inverse_transform(label.cpu().numpy())
-        prediction = sc_val.inverse_transform(prediction.cpu().numpy())
-        outputs = torch.from_numpy(prediction).to(device).view(-1, 1)
-        labels = torch.from_numpy(label).to(device).view(-1, 1)
-
-        mse = f.mse_loss(outputs, labels).item()
-        mae = f.l1_loss(outputs, labels).item()
-
-    r2 = r2_score(label, prediction)
-
-    file_output(f'MSE: {mse:.4f}\tMAE: {mae:.4f}\tTrain R2 score: {r2:.4f}')
-
-    visualize_regression(
-        label, prediction, mse_score=mse, mae_score=mae, r2_score=r2,
-        plot_max=200, plot_min=0, vmax=40., vmin=0., alpha=0.5, figsize=(15, 12),
-        xlabel='Value', ylabel='Prediction', title='Year of Survival Regression',
-        filename=f"output_train_regression.png", show=False
-    )
+    # checkpoint = os.path.join(checkpoint_dir, "finalize", f'best_checkpoint_epoch_{str(best_epoch).zfill(3)}.pt')
+    # model_state_dict = torch.load(checkpoint)['model']
+    # torch.save(model_state_dict, os.path.join(checkpoint_dir, "best_model_weight.pt"))
+    #
+    # print("\n\n\nLoading best weight...\n")
+    #
+    # net.load_state_dict(model_state_dict)
+    # net.eval().to(device)
+    #
+    # print("\n\n\nEvaluating...\n")
+    #
+    # with torch.no_grad():
+    #     prediction = []
+    #     label = []
+    #
+    #     for inputs, labels in get_loader(dataset, train=False):
+    #         inputs, labels = inputs.to(device), labels.to(device)
+    #         outputs = net(inputs)
+    #         prediction.append(outputs)
+    #         label.append(labels)
+    #
+    #     label = torch.cat(label, dim=0).view(-1, 1)
+    #     prediction = torch.cat(prediction, dim=0).view(-1, 1)
+    #
+    #     sc_val = dataset.y_proc.scaler_
+    #     label = sc_val.inverse_transform(label.cpu().numpy())
+    #     prediction = sc_val.inverse_transform(prediction.cpu().numpy())
+    #     outputs = torch.from_numpy(prediction).to(device).view(-1, 1)
+    #     labels = torch.from_numpy(label).to(device).view(-1, 1)
+    #
+    #     mse = f.mse_loss(outputs, labels).item()
+    #     mae = f.l1_loss(outputs, labels).item()
+    #
+    # r2 = r2_score(label, prediction)
+    #
+    # file_output(f'MSE: {mse:.4f}\tMAE: {mae:.4f}\tTrain R2 score: {r2:.4f}')
+    #
+    # visualize_regression(
+    #     label, prediction, mse_score=mse, mae_score=mae, r2_score=r2,
+    #     plot_max=200, plot_min=0, vmax=40., vmin=0., alpha=0.5, figsize=(15, 12),
+    #     xlabel='Value', ylabel='Prediction', title='Year of Survival Regression',
+    #     filename=f"output_train_regression.png", show=False
+    # )
 
 
 if __name__ == '__main__':
