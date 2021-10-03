@@ -77,32 +77,33 @@ def train():
     # early_stopping_epoch = (sum(early_stopping_epochs) // len(early_stopping_epochs)) + 1
     # file_output(f"KFold {repeat} repeating - average early stopping epoch: {early_stopping_epoch}")
 
-    early_stopping_epoch = 100
+    early_stopping_epoch = 50
 
     print("\n\n\nActual training...\n")
 
-    for num_layers in range(2, 9):
-        net = get_model(num_layers=num_layers)
-        optimizer = get_optimizer_from_config(net)
-        scheduler = get_lr_scheduler_from_config(optimizer)
-        loader = get_loader(dataset, train=True)
-        fitter = RegressionTrainer(
-            net, criterion, optimizer, scheduler, epoch=early_stopping_epoch,
-            snapshot_dir=os.path.join(checkpoint_dir, "finalize"),
-            train_iter=loader, val_iter=loader,
-            verbose=True, progress=False, log_interval=1
-        )
-        fitter.to(device)
-        _, train_result = fitter.fit(split_result=True)
-        best_epoch = train_result.index(min(train_result)) + 1
+    for num_layers in range(2, 3):
+        for channels in range(6, 10):
+            net = get_model(num_layers=num_layers, channels=2 ** channels)
+            optimizer = get_optimizer_from_config(net)
+            scheduler = get_lr_scheduler_from_config(optimizer)
+            loader = get_loader(dataset, train=True)
+            fitter = RegressionTrainer(
+                net, criterion, optimizer, scheduler, epoch=early_stopping_epoch,
+                snapshot_dir=os.path.join(checkpoint_dir, "finalize"),
+                train_iter=loader, val_iter=loader,
+                verbose=True, progress=False, log_interval=1
+            )
+            fitter.to(device)
+            _, train_result = fitter.fit(split_result=True)
+            best_epoch = train_result.index(min(train_result)) + 1
 
-        visualize_learning(
-            train_result, train_result,
-            title=f"Whole Data Learning Curve", figsize=(12, 12),
-            filename=f"output_train_whole_{num_layers}.png", show=False
-        )
+            visualize_learning(
+                train_result, train_result,
+                title=f"Whole Data Learning Curve", figsize=(12, 12),
+                filename=f"output_train_whole_{num_layers}_{2 ** channels}.png", show=False
+            )
 
-        print("\n\n\nSaving model...\n")
+            print("\n\n\nSaving model...\n")
 
     # checkpoint = os.path.join(checkpoint_dir, "finalize", f'best_checkpoint_epoch_{str(best_epoch).zfill(3)}.pt')
     # model_state_dict = torch.load(checkpoint)['model']
