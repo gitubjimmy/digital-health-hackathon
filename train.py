@@ -131,7 +131,7 @@ def train():
         label = sc_val.inverse_transform(label.cpu().numpy())
         prediction = sc_val.inverse_transform(prediction.cpu().numpy())
         outputs = torch.from_numpy(prediction).to(device).view(-1, 1)
-        labels = torch.from_numpy(prediction).to(device).view(-1, 1)
+        labels = torch.from_numpy(label).to(device).view(-1, 1)
 
         mse = f.mse_loss(outputs, labels).item()
         mae = f.l1_loss(outputs, labels).item()
