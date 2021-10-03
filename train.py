@@ -117,26 +117,26 @@ def train():
     with torch.no_grad():
         prediction = []
         label = []
-        mse = mae = 0.
 
         for inputs, labels in get_loader(dataset, train=False):
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = net(inputs)
-            mse += f.mse_loss(outputs, labels).item() * labels.shape[0]
-            mae += f.l1_loss(outputs, labels).item() * labels.shape[0]
             prediction.append(outputs)
             label.append(labels)
 
         label = torch.cat(label, dim=0).view(-1, 1)
         prediction = torch.cat(prediction, dim=0).view(-1, 1)
 
-    sc_val = dataset.y_proc.scaler_
-    label = sc_val.inverse_transform(label.numpy())
-    prediction = sc_val.inverse_transform(prediction.numpy())
+        sc_val = dataset.y_proc.scaler_
+        label = sc_val.inverse_transform(label.cpu().numpy())
+        prediction = sc_val.inverse_transform(prediction.cpu().numpy())
+        outputs = torch.from_numpy(prediction).to(device).view(-1, 1)
+        labels = torch.from_numpy(prediction).to(device).view(-1, 1)
+
+        mse = f.mse_loss(outputs, labels).item()
+        mae = f.l1_loss(outputs, labels).item()
 
     r2 = r2_score(label, prediction)
-    mse /= len(dataset)
-    mae /= len(dataset)
 
     file_output(f'MSE: {mse:.4f}\tMAE: {mae:.4f}\tTrain R2 score: {r2:.4f}')
 

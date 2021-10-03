@@ -31,64 +31,49 @@ def file_output(data: str):
 file_output.count = 0
 
 
-@contextlib.contextmanager
-def kill_stderr():  # context manager
-    devnull = open(os.devnull, mode='w')
-    with contextlib.redirect_stderr(devnull):
-        yield
-    devnull.close()
+# noinspection PyPep8Naming
+class kill_stderr(contextlib.redirect_stderr, contextlib.ContextDecorator):
 
+    def __new__(cls, func=None):
+        if func is not None:  # as decorator
+            return cls()(func)
+        return super().__new__(cls)
 
-def without_stderr(func):  # decorator
-    """Decorator that makes function run without stderr output."""
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        with kill_stderr():
-            return func(*args, **kwargs)
-    return wrapper
+    __new__.__text_signature__ = '($cls, func=None, /)'
 
+    def __init__(self):
+        super().__init__(open(os.devnull, mode='w'))
 
-class StdoutCatcher(
-    contextlib.ContextDecorator,
-    contextlib.AbstractContextManager
-):  # context manager: available as str with subclassing
-    """
-    Context manager that catches stdout in context, and can be converted to string
+    __doc__ = """
+    
+    Context manager that kills stderr in context.
+    Can be used as decorator.
 
     example usage:
 
         As context manager: simply used as context manager
-            >>> output = StdoutCatcher()
-            >>> with output:
-            ...     print("Sample outputs")
+            >>> from tqdm.std import tqdm
+            >>> with kill_stderr():
+            ...     for _ in tqdm(range(1)):
+            ...         pass
             ...
-            >>> str(output)
-            "Sample outputs\n"
 
-        As direct decorator: make function return stdout output string, instead of printing it.
-            >>> @StdoutCatcher
+        As decorator : make function work without stderr output.
+            >>> from tqdm.std import tqdm
+            >>> @kill_stderr:  # also available as @kill_stderr():
             ... def simple_function():
-            ...     print("Sample outputs")
-            ...     return "Truncated return value"
+            ...     for _ in tqdm(range(1)):
+            ...         pass
             ...
             >>> simple_function()
-            "Sample outputs\n"
-
-        As initialized decorator: make function continuously stack stdout output to object, instead of printing it.
-            >>> output = StdoutCatcher()
-            >>> @output
-            ... def simple_function():
-            ...     print("Sample outputs")
-            ...     return "Return value"
-            ...
-            >>> simple_function()
-            "Return value"
-            >>> simple_function()
-            "Return value"
-            >>> str(output)
-            "Sample outputs\nSample outputs\n"
 
     """
+
+
+without_stderr = kill_stderr  # alias
+
+
+class StdoutCatcher(contextlib.ContextDecorator, contextlib.AbstractContextManager):  # can be converted as string
 
     __stream = "stdout"
 
@@ -144,6 +129,45 @@ class StdoutCatcher(
         wrapper = super().__call__(func)
         wrapper.__output__ = self.__wrapper
         return wrapper
+
+    __doc__ = """
+    
+    Context manager that catches stdout in context, and can be converted to string
+
+    example usage:
+
+        As context manager: simply used as context manager
+            >>> output = StdoutCatcher()
+            >>> with output:
+            ...     print("Sample outputs")
+            ...
+            >>> str(output)
+            "Sample outputs\n"
+
+        As direct decorator: make function return stdout output string, instead of printing it.
+            >>> @StdoutCatcher
+            ... def simple_function():
+            ...     print("Sample outputs")
+            ...     return "Truncated return value"
+            ...
+            >>> simple_function()
+            "Sample outputs\n"
+
+        As initialized decorator: make function continuously stack stdout output to object, instead of printing it.
+            >>> output = StdoutCatcher()
+            >>> @output
+            ... def simple_function():
+            ...     print("Sample outputs")
+            ...     return "Return value"
+            ...
+            >>> simple_function()
+            "Return value"
+            >>> simple_function()
+            "Return value"
+            >>> str(output)
+            "Sample outputs\nSample outputs\n"
+
+    """
 
 
 catch_stdout = StdoutCatcher  # alias
