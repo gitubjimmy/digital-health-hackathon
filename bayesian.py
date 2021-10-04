@@ -46,12 +46,18 @@ if __name__ == '__main__':
             groups.append(find_rel_nodes(idx, [idx]))
 
     # Imputing biased survival time
-    # for row_idx in range(survival_time_event.shape[0]):
-    #     if survival_time_event.loc[row_idx, "event"] == 0:
-    #         current_survival_time = survival_time_event.loc[row_idx, "time"]
-    #         survival_time_event.at[row_idx, "time"] = survival_time_event.loc[
-    #             (survival_time_event["event"] == 1) &
-    #             (survival_time_event["time"] > current_survival_time), "time"].mean()
+    extrapolated_survival_time = []
+    for row_idx in range(survival_time_event.shape[0]):
+        survival_time = survival_time_event.loc[row_idx, "time"]
+        if survival_time_event.loc[row_idx, "event"] == 0:
+            new_survival_time = survival_time_event.loc[
+                (survival_time_event["event"] == 1) &
+                (survival_time_event["time"] > survival_time), "time"].mean()
+            extrapolated_survival_time.append(new_survival_time)
+        else:
+            extrapolated_survival_time.append(survival_time)
+    survival_time_event["extrapolated"] = extrapolated_survival_time
+    survival_time_event.to_csv('./data/survival_time_extrapolation.csv')
 
     for gp in groups:
         gp.sort()
