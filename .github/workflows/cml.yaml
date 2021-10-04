@@ -1,35 +1,20 @@
 name: model-training
 on:
-  - push
-  - workflow_dispatch
+  push:
+    branches:
+      - '*'
+      - '!master'
 jobs:
   run:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
-        with:
-          python-version: '3.8'
-      - run: |
-          curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
-          sudo apt-get install -y nodejs
-          sudo apt install aptitude -y
-          sudo aptitude install npm -y
       - uses: iterative/setup-cml@v1
       - name: Train model
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pip3 install -r requirements.txt
-          python train.py
-
-          echo "## Training model  " >> output.md
-          cat output.txt >> output.md
-
-          python test.py
-
-          echo "## Testing model  " >> output.md
-          cml-publish sample.png --md >> output.md
-          cat output.txt >> output.md
-
-          cml-send-comment output.md
+          python bayesian.py >> stdout.md
+          cml-send-comment stdout.md

@@ -23,6 +23,8 @@ def file_output(line):
     with open(OUTPUT_FILE_PATH, open_method) as output_file:
         output_file.write(f'{line}\n')
 
+file_output.count = 0
+
 
 @contextlib.contextmanager
 def kill_stderr():  # context manager
@@ -57,4 +59,8 @@ def without_stderr(func):  # decorator
     return wrapper
 
 
-file_output.count = 0
+def write_to_csv(file_name, array):
+    with open(file_name, 'w') as csv_file:
+        for row in array:
+            row = [str(cell) for cell in row]
+            csv_file.write(','.join(row) + '\n')
