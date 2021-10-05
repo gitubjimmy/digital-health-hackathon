@@ -6,13 +6,14 @@ from sklearn.model_selection import KFold
 import config
 
 
-def get_loader(dataset, train=True, sampler=None, batch_size=config.BATCH_SIZE):
+def get_loader(dataset, train=True, sampler=None, batch_size=config.BATCH_SIZE, drop_last=False):
     return torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
         shuffle=train and sampler is None,
         sampler=sampler,
-        num_workers=2
+        num_workers=2,
+        drop_last=drop_last,
     )
 
 
