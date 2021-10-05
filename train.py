@@ -40,11 +40,11 @@ def train():
     # early_stopping_epoch = (sum(early_stopping_epochs) // len(early_stopping_epochs)) + 1
     # file_output(f"KFold {repeat} repeating - average early stopping epoch: {early_stopping_epoch}")
 
-    early_stopping_epoch = 50
+    early_stopping_epoch = 100
 
     print("\n\n\nActual training...\n")
 
-    net = get_model(num_layers=2, channels=512)
+    net = get_model(num_layers=None, channels=[2048, 512])
     optimizer = get_optimizer_from_config(net)
     scheduler = get_lr_scheduler_from_config(optimizer)
     loader = get_loader(dataset, train=True)

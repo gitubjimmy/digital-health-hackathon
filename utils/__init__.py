@@ -75,7 +75,7 @@ without_stderr = kill_stderr  # alias
 
 class StdoutCatcher(contextlib.ContextDecorator, contextlib.AbstractContextManager):  # can be converted as string
 
-    __stream = "stdout"
+    _stream = "stdout"
 
     def __new__(cls, func=None):
         if func is not None:  # as direct decorator
@@ -86,6 +86,7 @@ class StdoutCatcher(contextlib.ContextDecorator, contextlib.AbstractContextManag
                 return str(obj)
             return wrapper  # return not new object but decorator
         self = object.__new__(cls)
+        self.__stream = cls._stream
         self.__lock = threading.RLock()
         self.__target = None
         self.__wrapper = io.StringIO()

@@ -35,7 +35,7 @@ def get_processed_data():
     import torch
     import pandas as pd
     from .dataset import PandasDataset
-    from .preprocessor import StandardYProcessor, MinMaxScaler
+    from .preprocessor import ExtrapolationYProcessor, MinMaxScaler
     clinical_variables, generic_alterations, survival_time_event, treatment = get_raw_data()
 
     # process clinical variables
@@ -46,8 +46,8 @@ def get_processed_data():
     )
 
     # process survival time
-    y_proc = StandardYProcessor(feature_range=(0, 1))
-    y = y_proc.fit_transform(survival_time_event['time'], survival_time_event['event'])
+    y_proc = ExtrapolationYProcessor(feature_range=(0, 1))
+    y = y_proc.fit_transform(survival_time_event)
 
     # concat
     full = pd.concat([treatment, clinical_variables, generic_alterations], axis=1)

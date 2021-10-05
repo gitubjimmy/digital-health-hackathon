@@ -5,6 +5,72 @@ import numpy as np
 from typing import cast
 
 
+def extrapolate(survival_time_event):
+    if "extrapolated" in survival_time_event.columns:
+        return survival_time_event
+    extrapolated_survival_time = []
+    for row_idx in range(survival_time_event.shape[0]):
+        survival_time = survival_time_event.loc[row_idx, "time"]
+        if survival_time_event.loc[row_idx, "event"] == 0:
+            new_survival_time = survival_time_event.loc[
+                (survival_time_event["event"] == 1) &
+                (survival_time_event["time"] > survival_time), "time"].mean()
+            extrapolated_survival_time.append(new_survival_time)
+        else:
+            extrapolated_survival_time.append(survival_time)
+    survival_time_event["extrapolated"] = extrapolated_survival_time
+    # survival_time_event.to_csv('./data/survival_time_extrapolation.csv')
+    return survival_time_event
+
+
+class ExtrapolationYProcessor:
+
+    def __init__(self, *, feature_range=(-1, 1), copy=True, clip=False):
+        self.feature_range = feature_range
+        self.copy = copy
+        self.clip = clip
+
+    def _reset(self):
+        if hasattr(self, 'scaler_'):
+            del self.scaler_
+
+    def fit(self, df):
+        """
+        fit(time, event)
+            Compute data to be used for later scaling.
+        """
+        self._reset()
+        df = extrapolate(df)
+        time = df['extrapolated']
+        time = self._validate_data(time)
+        self.scaler_ = MinMaxScaler(feature_range=self.feature_range, copy=self.copy, clip=self.clip)
+        self.scaler_.fit(time.reshape(-1, 1))
+        return self
+
+    def transform(self, df):
+        """
+        transform(time, event)
+            Scale features of data according to feature_range.
+        """
+        df = extrapolate(df)
+        time = self._validate_data(df['extrapolated'])
+        if self.copy:
+            time = time.copy()
+        time = self.scaler_.transform(time.reshape(-1, 1)).reshape(-1)
+        return time
+
+    def fit_transform(self, df):
+        """
+        fit_transform(time, event)
+            Fit to data, then transform it.
+        """
+        return self.fit(df).transform(df)
+
+    @staticmethod
+    def _validate_data(data):
+        return cast(np.ndarray, check_array(data, accept_sparse=True, force_all_finite="allow-nan", ensure_2d=False))
+
+
 class StandardYProcessor:
     """
 

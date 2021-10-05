@@ -31,19 +31,20 @@ def out_of_fold_validation(num_epochs, random_state=777):
 
     print("Validating by oof...\n")
 
-    train_dataset, test_dataset = train_test_split(dataset, train_size=5, test_size=1, random_state=random_state)
     kf = KFold(n_splits=5, random_state=random_state, shuffle=True)
 
     predictions = []
+    ground_truth = []
 
-    for fold, (train_idx, val_idx) in enumerate(kf.split(train_dataset)):
+    for fold, (train_idx, val_idx) in enumerate(kf.split(dataset)):
 
         print("<Fold %s>\n" % fold)
         snapshot_dir = os.path.join('checkpoint', f'fold{fold}')
+        os.makedirs(snapshot_dir, exist_ok=True)
         fitter = initialize_trainer(num_epochs, snapshot_dir)
         _, test_result = fitter.fit(
-            get_loader(train_dataset, sampler=SubsetRandomSampler(train_idx)),
-            get_loader(train_dataset, sampler=SubsetRandomSampler(val_idx)),
+            get_loader(dataset, sampler=SubsetRandomSampler(train_idx)),
+            get_loader(dataset, sampler=SubsetRandomSampler(val_idx)),
             split_result=True
         )
         best_snapshot = sorted(glob.glob(os.path.join(snapshot_dir, 'best_checkpoint_epoch_*.pt')))[-1]
@@ -51,20 +52,17 @@ def out_of_fold_validation(num_epochs, random_state=777):
         model = fitter.model
 
         with torch.no_grad():
-            fold_prediction = []
-            for x, _ in get_loader(test_dataset, train=False):
-                fold_prediction.append(model(x.to(device)))
-            fold_prediction = torch.cat(fold_prediction, dim=0).view(-1, 1)
-            predictions.append(fold_prediction)
+            for x, y in get_loader(dataset, sampler=SubsetRandomSampler(val_idx), batch_size=50):
+                t = model(x.to(device))
+                y = y.to(device)
+                predictions.append(t)
+                ground_truth.append(y)
 
     with torch.no_grad():
-        prediction_avg = sum(predictions) / len(predictions)
-        ground_truth = []
-        for _, y in get_loader(test_dataset, train=False):
-            ground_truth.append(y.to(device))
-        ground_truth = torch.cat(ground_truth, dim=0).view(-1, 1)
+        predictions = torch.cat(predictions, dim=0).view(-1, 1).cpu()
+        ground_truth = torch.cat(ground_truth, dim=0).view(-1, 1).cpu()
 
-    return prediction_avg, ground_truth
+    return predictions, ground_truth
 
 
 def k_fold_early_stopping(num_folds, num_epochs, repeat):
