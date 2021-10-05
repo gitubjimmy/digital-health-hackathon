@@ -206,7 +206,6 @@ class RegressionTrainer(TrainerMixin):
         if isinstance(data, torch.utils.data.DataLoader):
             try:
                 total_len = len(data.dataset)  # type: ignore
-                batch_size = data.batch_size
             except (TypeError, ValueError):
                 pass
         count = total_len == 0
@@ -217,7 +216,7 @@ class RegressionTrainer(TrainerMixin):
             x, y = self._to_apply_multi_tensor(x, y)
             prediction = self.model(x)
             loss = self.criterion(prediction, y)
-            total_loss += loss.item() * batch_size
+            total_loss += loss.item() * y.size(0)
             if count:
                 total_len += 1
 
