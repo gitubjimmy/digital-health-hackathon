@@ -53,10 +53,6 @@ def get_processed_data():
     full = pd.concat([treatment, clinical_variables, generic_alterations], axis=1)
     full['time'] = y
 
-    # drop event == 0
-    full = full.drop(full.index[survival_time_event.event == 0])
-    full.index = range(len(full))
-
     # convert to pytorch dataset
     processed_dataset = PandasDataset(full, label_target='time', dtype=torch.float32)
 
