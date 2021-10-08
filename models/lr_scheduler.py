@@ -2,6 +2,7 @@ import math
 from torch.optim import lr_scheduler
 
 
+# src: https://github.com/gaussian37/pytorch_deep_learning_models/blob/master/cosine_annealing_with_warmup/cosine_annealing_with_warmup.py
 class CosineAnnealingWarmUpRestarts(lr_scheduler._LRScheduler):  # noqa
 
     def __init__(self, optimizer, T_0, T_mult=1, eta_max=0.1, T_up=0, gamma=1., last_epoch=-1):

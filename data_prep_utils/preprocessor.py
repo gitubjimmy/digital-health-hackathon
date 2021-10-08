@@ -6,6 +6,15 @@ from typing import cast
 
 
 def extrapolate(survival_time_event):
+    """
+
+    extrapolate survival time whose event is 0 (alive)
+
+    Parameters:
+
+        survival_time_event : data frame.
+
+    """
     if "extrapolated" in survival_time_event.columns:
         return survival_time_event
     extrapolated_survival_time = []
@@ -24,6 +33,40 @@ def extrapolate(survival_time_event):
 
 
 class ExtrapolationYProcessor:
+    """
+
+    extrapolate y whose event is 0 (alive), and min-max scale remaining data.
+
+    Parameters:
+
+        feature_range : tuple (min, max), default=(-1, 1)
+            Desired range of transformed data.
+
+        copy : bool, default=True
+            Set to False to perform inplace row normalization and avoid a
+            copy (if the input is already a numpy array).
+
+        clip : bool, default=False
+            Set to True to clip transformed values of held-out data to
+            provided `feature range`.
+
+    Attributes:
+
+        scaler_ : MinMaxScaler
+            backend-scaler which is used in min-max scaling when transform runs.
+
+    Methods:
+
+        fit(time, event)
+            Compute data to be used for later scaling.
+
+        transform(time, event)
+            Scale features of data according to feature_range.
+
+        fit_transform(time, event)
+            Fit to data, then transform it.
+
+    """
 
     def __init__(self, *, feature_range=(-1, 1), copy=True, clip=False):
         self.feature_range = feature_range
@@ -212,4 +255,4 @@ class TanhYProcessor(StandardYProcessor):
         return time
 
 
-__all__ = ['MinMaxScaler', 'StandardYProcessor', 'TanhYProcessor']
+__all__ = ['MinMaxScaler', 'StandardYProcessor', 'TanhYProcessor', 'ExtrapolationYProcessor', 'extrapolate']

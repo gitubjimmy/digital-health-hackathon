@@ -9,4 +9,6 @@ scikit-learn~=0.24.2
 seaborn
 networkx~=2.6.2
 torchinfo~=1.5.3
+scipy
+salib
 tabulate~=0.8.9  # for pandas.DataFrame.to_markdown()

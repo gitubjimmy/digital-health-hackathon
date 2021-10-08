@@ -7,6 +7,7 @@ import config
 
 
 def get_loader(dataset, train=True, sampler=None, batch_size=config.BATCH_SIZE, drop_last=False):
+    """Loader Magic"""
     return torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,

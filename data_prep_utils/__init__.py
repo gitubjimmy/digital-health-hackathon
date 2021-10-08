@@ -9,8 +9,8 @@ from . import preprocessor
 
 def get_data_dir():
 
-    from config import ROOT
-    return ROOT / 'data'
+    import config
+    return config.DATA_PATH
 
 
 def get_raw_data():

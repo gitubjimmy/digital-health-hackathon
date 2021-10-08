@@ -6,17 +6,7 @@ import contextlib
 import functools
 import threading
 
-import matplotlib.pyplot as plt
-import numpy as np
-
 from config import OUTPUT_FILE_PATH
-
-
-def img_show(img, filename: str):
-    img = img / 2 + 0.5
-    np_img = img.numpy()
-    plt.imshow(np.transpose(np_img, (1, 2, 0)))
-    plt.savefig(filename)
 
 
 def file_output(data: str):
